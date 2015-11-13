@@ -8,43 +8,44 @@ import (
 	"net/http"
 )
 
+// Struct representation of the slack user.list api JSON structure.
 type UserList struct {
-	Ok      bool `json:"ok"`
-	Members []struct {
-		ID       string      `json:"id"`
-		TeamID   string      `json:"team_id"`
-		Name     string      `json:"name"`
-		Deleted  bool        `json:"deleted"`
-		Status   interface{} `json:"status"`
-		Color    string      `json:"color"`
-		RealName string      `json:"real_name"`
-		Tz       interface{} `json:"tz"`
-		TzLabel  string      `json:"tz_label"`
-		TzOffset int         `json:"tz_offset"`
-		Profile  struct {
-			BotID              string      `json:"bot_id"`
+	Users []struct {
+		Color             string `json:"color"`
+		Deleted           bool   `json:"deleted"`
+		Has2fa            bool   `json:"has_2fa"`
+		ID                string `json:"id"`
+		IsAdmin           bool   `json:"is_admin"`
+		IsBot             bool   `json:"is_bot"`
+		IsOwner           bool   `json:"is_owner"`
+		IsPrimaryOwner    bool   `json:"is_primary_owner"`
+		IsRestricted      bool   `json:"is_restricted"`
+		IsUltraRestricted bool   `json:"is_ultra_restricted"`
+		Name              string `json:"name"`
+		Profile           struct {
+			Email              string      `json:"email"`
+			Fields             interface{} `json:"fields"`
+			Image192           string      `json:"image_192"`
 			Image24            string      `json:"image_24"`
 			Image32            string      `json:"image_32"`
 			Image48            string      `json:"image_48"`
-			Image72            string      `json:"image_72"`
-			Image192           string      `json:"image_192"`
 			Image512           string      `json:"image_512"`
-			Image1024          string      `json:"image_1024"`
-			ImageOriginal      string      `json:"image_original"`
+			Image72            string      `json:"image_72"`
 			RealName           string      `json:"real_name"`
 			RealNameNormalized string      `json:"real_name_normalized"`
-			Fields             interface{} `json:"fields"`
 		} `json:"profile"`
-		IsAdmin           bool `json:"is_admin"`
-		IsOwner           bool `json:"is_owner"`
-		IsPrimaryOwner    bool `json:"is_primary_owner"`
-		IsRestricted      bool `json:"is_restricted"`
-		IsUltraRestricted bool `json:"is_ultra_restricted"`
-		IsBot             bool `json:"is_bot"`
+		RealName string      `json:"real_name"`
+		Status   interface{} `json:"status"`
+		TeamID   string      `json:"team_id"`
+		Tz       string      `json:"tz"`
+		TzLabel  string      `json:"tz_label"`
+		TzOffset int         `json:"tz_offset"`
 	} `json:"members"`
+	Ok bool `json:"ok"`
 }
 
-func (bot *Bot) FetchSlackUsers() {
+// Fetches a list of slack users and saves thier user ids by emails in a database
+func (bot *Bot) FetchSlackUsers() *UserList {
 
 	var data UserList
 
@@ -64,7 +65,6 @@ func (bot *Bot) FetchSlackUsers() {
 	if err != nil {
 		log.Print(err)
 	}
-
-	fmt.Print(data)
+	return &data
 
 }

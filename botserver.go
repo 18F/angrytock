@@ -15,12 +15,16 @@ import (
 
 func main() {
 
+	bot := bot.InitBot()
+
 	c := cron.New()
 	c.AddFunc("*/5 * * * * *", func() {
 		log.Println("Slapping Users")
-		bot := bot.InitBot()
 		bot.SlapLateUsers()
-		bot.FetchSlackUsers()
+	})
+	c.AddFunc("*/20 * * * * *", func() {
+		log.Println("Collecting Users")
+		bot.StoreSlackUsers()
 	})
 	c.Start()
 

@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// Struct representation of the user JSON object from tock
 type User struct {
 	Id        int    `json:"id"`
 	Username  string `json:"username"`
@@ -17,28 +18,35 @@ type User struct {
 	Email     string `json:"email"`
 }
 
+// Struct representation of the reporting_period JSON object from tock
 type ReportingPeriod struct {
 	StartDate    string `json:"start_date"`
 	EndDate      string `json:"end_date"`
 	WorkingHours int    `json:"working_hours"`
 }
 
+// Struct representation of a API page response from tock
 type APIPages struct {
 	Count   int    `json:"count"`
 	NextUrl string `json:"next"`
 	PrevUrl string `json:"previous"`
 }
 
+// Struct representation of an API response from the Reporting Period Audit
+// list endpoint
 type ReportingPeriodAuditList struct {
 	APIPages
 	ReportingPeriods []ReportingPeriod `json:"results"`
 }
 
+// Struct representation of an API response from the Reporting Period Audit
+// details endpoint
 type ReportingPeriodAuditDetails struct {
 	APIPages
 	Users []User `json:"results"`
 }
 
+// Function for collecting the current reporting period
 func fetchCurrentReportingPeriod() string {
 
 	var data ReportingPeriodAuditList
@@ -62,6 +70,8 @@ func fetchCurrentReportingPeriod() string {
 	return data.ReportingPeriods[0].StartDate
 }
 
+// Function for collecting all the users who have not filled out thier time sheet
+// for the current period
 func FetchTockUsers() *ReportingPeriodAuditDetails {
 
 	var data ReportingPeriodAuditDetails
