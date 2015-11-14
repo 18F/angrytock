@@ -4,7 +4,9 @@
 package bot
 
 import (
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/boltdb/bolt"
@@ -15,7 +17,24 @@ import (
 // emails and usernames
 type Bot struct {
 	Token string
-	DB *bolt.DB
+	DB    *bolt.DB
+}
+
+// Open url and return the body of request
+func fetchData(Url string) []byte {
+
+	res, err := http.Get(Url)
+	if err != nil {
+		log.Print("Failed to make request")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Print("Failed to read response")
+	}
+
+	return body
+
 }
 
 // Method for initializing a bot
@@ -24,20 +43,20 @@ func InitBot() *Bot {
 	// Collect the slack key
 	slack_key := os.Getenv("SLACK_KEY")
 	if slack_key == "" {
-			log.Fatal("Slack key not found")
+		log.Fatal("Slack key not found")
 	}
 
 	// Open connection to database
 	db, err := bolt.Open("my.db", 0600, nil)
 	if err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
 
 	// Create a database
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte("SlackUsers"))
 		if err != nil {
-				log.Fatal(err)
+			log.Fatal(err)
 		}
 		return nil
 	})
@@ -54,9 +73,8 @@ func (bot *Bot) SlapLateUsers() {
 			b := tx.Bucket([]byte("SlackUsers"))
 			v := string(b.Get([]byte(user.Email)))
 			if v != "" {
-				log.Print(v)
+				bot.MessageUser(v, "Please fill out your time sheet!")
 			}
-
 		}
 		return nil
 	})
@@ -65,15 +83,15 @@ func (bot *Bot) SlapLateUsers() {
 // Function for collecting and storing slack users in database
 func (bot *Bot) StoreSlackUsers() {
 
-	data := bot.FetchSlackUsers()
+	slackUserData := bot.FetchSlackUsers()
 
 	bot.DB.Update(func(tx *bolt.Tx) error {
-    b := tx.Bucket([]byte("SlackUsers"))
-		for _, user := range data.Users {
+		b := tx.Bucket([]byte("SlackUsers"))
+		for _, user := range slackUserData.Users {
 			err := b.Put([]byte(user.Profile.Email), []byte(user.ID))
 			log.Print("Saved :", user.Profile.Email)
 			if err != nil {
-					log.Print(err)
+				log.Print(err)
 			}
 		}
 		return nil

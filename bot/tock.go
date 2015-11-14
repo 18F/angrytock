@@ -3,9 +3,7 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -51,18 +49,11 @@ func fetchCurrentReportingPeriod() string {
 
 	var data ReportingPeriodAuditList
 
-	url := fmt.Sprintf(os.Getenv("AUDIT_ENDPOINT"))
-	res, err := http.Get(url)
-	if err != nil {
-		log.Print("Failed to make request")
-	}
+	Url := fmt.Sprintf(os.Getenv("AUDIT_ENDPOINT"))
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Print("Failed to read response")
-	}
+	body := fetchData(Url)
 
-	err = json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}
@@ -77,18 +68,11 @@ func FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	timePeriod := fetchCurrentReportingPeriod()
 
-	url := fmt.Sprintf("%s%s", os.Getenv("AUDIT_ENDPOINT"), timePeriod)
-	res, err := http.Get(url)
-	if err != nil {
-		log.Print("Failed to make request")
-	}
+	Url := fmt.Sprintf("%s%s", os.Getenv("AUDIT_ENDPOINT"), timePeriod)
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Print("Failed to read response")
-	}
+	body := fetchData(Url)
 
-	err = json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}

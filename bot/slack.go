@@ -3,9 +3,9 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 )
 
 // Struct representation of the slack user.list api JSON structure.
@@ -44,27 +44,60 @@ type UserList struct {
 	Ok bool `json:"ok"`
 }
 
+// Response from im.open
+type ChannelResponse struct {
+	Ok          bool `json:"ok"`
+	NoOp        bool `json:"no_op"`
+	AlreadyOpen bool `json:"already_open"`
+	Channel     struct {
+		ID string
+	} `json:"channel"`
+}
+
 // Fetches a list of slack users and saves thier user ids by emails in a database
 func (bot *Bot) FetchSlackUsers() *UserList {
 
 	var data UserList
 
-	url := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
+	Url := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
 
-	res, err := http.Get(url)
-	if err != nil {
-		log.Print("Failed to make request")
-	}
+	body := fetchData(Url)
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Print("Failed to read response")
-	}
-
-	err = json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}
 	return &data
 
+}
+
+// Method to send a message to users
+func (bot *Bot) MessageUser(user string, message string) {
+
+	var channelData ChannelResponse
+
+	// Open channel
+	Url := "https://slack.com/api/im.open?"
+	Url += fmt.Sprintf("token=%s&user=%s", bot.Token, user)
+
+	body := fetchData(Url)
+
+	err := json.Unmarshal(body, &channelData)
+	if err != nil {
+		log.Print(err)
+	}
+
+	// Send message
+	Url = "https://slack.com/api/chat.postMessage?"
+	Url += fmt.Sprintf(
+		"token=%s&channel=%s&text=%s&as_user=true",
+		bot.Token,
+		channelData.Channel.ID,
+		url.QueryEscape(message),
+	)
+
+	_, err = http.Get(Url)
+	if err != nil {
+		log.Print("Failed to make request")
+	}
 }
