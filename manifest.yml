@@ -1,0 +1,5 @@
+---
+applications:
+- name:
+  memory: 128M
+  host: tock-slackbot
