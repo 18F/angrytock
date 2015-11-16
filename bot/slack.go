@@ -8,7 +8,7 @@ import (
 	"net/url"
 )
 
-// Struct representation of the slack user.list api JSON structure.
+// UserList is a struct representation of the slack user.list api JSON structure.
 type UserList struct {
 	Users []struct {
 		Color             string `json:"color"`
@@ -44,7 +44,7 @@ type UserList struct {
 	Ok bool `json:"ok"`
 }
 
-// Response from im.open
+// ChannelResponse is a struct representation of a response from im.open
 type ChannelResponse struct {
 	Ok          bool `json:"ok"`
 	NoOp        bool `json:"no_op"`
@@ -54,14 +54,15 @@ type ChannelResponse struct {
 	} `json:"channel"`
 }
 
-// Fetches a list of slack users and saves thier user ids by emails in a database
+// FetchSlackUsers fetches a list of slack users and saves thier user ids by
+// emails in a database
 func (bot *Bot) FetchSlackUsers() *UserList {
 
 	var data UserList
 
-	Url := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
+	URL := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
 
-	body := fetchData(Url)
+	body := fetchData(URL)
 
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -71,16 +72,16 @@ func (bot *Bot) FetchSlackUsers() *UserList {
 
 }
 
-// Method to send a message to users
+// MessageUser is a method to send a message to users
 func (bot *Bot) MessageUser(user string, message string) {
 
 	var channelData ChannelResponse
 
 	// Open channel
-	Url := "https://slack.com/api/im.open?"
-	Url += fmt.Sprintf("token=%s&user=%s", bot.Token, user)
+	URL := "https://slack.com/api/im.open?"
+	URL += fmt.Sprintf("token=%s&user=%s", bot.Token, user)
 
-	body := fetchData(Url)
+	body := fetchData(URL)
 
 	err := json.Unmarshal(body, &channelData)
 	if err != nil {
@@ -88,15 +89,15 @@ func (bot *Bot) MessageUser(user string, message string) {
 	}
 
 	// Send message
-	Url = "https://slack.com/api/chat.postMessage?"
-	Url += fmt.Sprintf(
+	URL = "https://slack.com/api/chat.postMessage?"
+	URL += fmt.Sprintf(
 		"token=%s&channel=%s&text=%s&as_user=true",
 		bot.Token,
 		channelData.Channel.ID,
 		url.QueryEscape(message),
 	)
 
-	_, err = http.Get(Url)
+	_, err = http.Get(URL)
 	if err != nil {
 		log.Print("Failed to make request")
 	}
