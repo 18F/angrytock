@@ -4,11 +4,13 @@
 package bot
 
 import (
+	"crypto"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/18F/hmacauth"
 	"github.com/boltdb/bolt"
 )
 
@@ -16,8 +18,10 @@ import (
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
-	Token string
-	DB    *bolt.DB
+	Token         string
+	DB            *bolt.DB
+	AuditEndpoint string
+	Auth          hmacauth.HmacAuth
 }
 
 // Open url and return the body of request
@@ -43,7 +47,7 @@ func InitBot() *Bot {
 	// Collect the slack key
 	slackKey := os.Getenv("SLACK_KEY")
 	if slackKey == "" {
-		log.Fatal("Slack key not found")
+		log.Fatal("SLACK_KEY environment variable not found")
 	}
 
 	// Open connection to database
@@ -52,7 +56,7 @@ func InitBot() *Bot {
 		log.Fatal(err)
 	}
 
-	// Create a database
+	// Create a database bucket
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte("SlackUsers"))
 		if err != nil {
@@ -61,13 +65,25 @@ func InitBot() *Bot {
 		return nil
 	})
 
-	return &Bot{slackKey, db}
+	// Get Audit endpoint
+	auditendpoint := os.Getenv("AUDIT_ENDPOINT")
+	if auditendpoint == "" {
+		log.Fatal("AUDIT_ENDPOINT environment variable not found")
+	}
+	// Collect HMAC secret
+	HMACSecret := os.Getenv("HMAC_SECRET")
+	if HMACSecret == "" {
+		log.Fatal("HMAC_SECRET environment variable not found")
+	}
+	auth := hmacauth.NewHmacAuth(crypto.SHA1, []byte(HMACSecret), "X-Signature", nil)
+
+	return &Bot{slackKey, db, auditendpoint, auth}
 }
 
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
 func (bot *Bot) SlapLateUsers() {
 
-	data := FetchTockUsers()
+	data := bot.FetchTockUsers()
 	bot.DB.View(func(tx *bolt.Tx) error {
 		for _, user := range data.Users {
 			b := tx.Bucket([]byte("SlackUsers"))

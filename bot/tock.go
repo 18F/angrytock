@@ -3,7 +3,9 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -44,14 +46,37 @@ type ReportingPeriodAuditDetails struct {
 	Users []User `json:"results"`
 }
 
+// fetchDataProxy makes a GET request while adding the SignRequest opens url and
+// return the body of request
+func (bot *Bot) fetchDataProxy(URL string) []byte {
+
+	req, err := http.NewRequest("GET", URL, nil)
+	bot.Auth.SignRequest(req)
+	if err != nil {
+		log.Print("Failed to make request")
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Print("Failed to make request")
+	}
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Print("Failed to read response")
+	}
+
+	return body
+}
+
 // Function for collecting the current reporting period
-func fetchCurrentReportingPeriod() string {
+func (bot *Bot) fetchCurrentReportingPeriod() string {
 
 	var data ReportingPeriodAuditList
 
 	URL := fmt.Sprintf(os.Getenv("AUDIT_ENDPOINT"))
 
-	body := fetchData(URL)
+	body := bot.fetchDataProxy(URL)
 
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -63,14 +88,13 @@ func fetchCurrentReportingPeriod() string {
 
 // FetchTockUsers is a function for collecting all the users who have not
 // filled out thier time sheet for the current period
-func FetchTockUsers() *ReportingPeriodAuditDetails {
+func (bot *Bot) FetchTockUsers() *ReportingPeriodAuditDetails {
 
 	var data ReportingPeriodAuditDetails
-	timePeriod := fetchCurrentReportingPeriod()
+	timePeriod := bot.fetchCurrentReportingPeriod()
 
-	URL := fmt.Sprintf("%s%s", os.Getenv("AUDIT_ENDPOINT"), timePeriod)
-
-	body := fetchData(URL)
+	URL := fmt.Sprintf("%s%s/", bot.AuditEndpoint, timePeriod)
+	body := bot.fetchDataProxy(URL)
 
 	err := json.Unmarshal(body, &data)
 	if err != nil {
