@@ -1,5 +1,7 @@
 # tock-bot
 
+[![Go Report Card](http://goreportcard.com/badge/geramirez/tock-bot)](http://goreportcard.com/report/geramirez/tock-bot)
+
 Slackbot slapbot for slapping tock slackers
 
 ## Usage
