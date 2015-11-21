@@ -5,10 +5,14 @@ package bot
 
 import (
 	"crypto"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"golang.org/x/net/websocket"
 
 	"github.com/18F/hmacauth"
 	"github.com/boltdb/bolt"
@@ -18,6 +22,8 @@ import (
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
+	ID            string
+	Connection    *websocket.Conn
 	Token         string
 	DB            *bolt.DB
 	AuditEndpoint string
@@ -50,6 +56,9 @@ func InitBot() *Bot {
 		log.Fatal("SLACK_KEY environment variable not found")
 	}
 
+	// Start a connection to the websocket
+	ws, id := NewSlackConnection(slackKey)
+
 	// Open connection to database
 	db, err := bolt.Open("my.db", 0600, nil)
 	if err != nil {
@@ -77,16 +86,16 @@ func InitBot() *Bot {
 	}
 	auth := hmacauth.NewHmacAuth(crypto.SHA1, []byte(HMACSecret), "X-Signature", nil)
 
-	return &Bot{slackKey, db, auditendpoint, auth}
+	return &Bot{id, ws, slackKey, db, auditendpoint, auth}
 }
 
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
 func (bot *Bot) SlapLateUsers() {
-
+	log.Println("Slapping Tock Users")
 	data := bot.FetchTockUsers()
 	bot.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("SlackUsers"))
 		for _, user := range data.Users {
-			b := tx.Bucket([]byte("SlackUsers"))
 			v := string(b.Get([]byte(user.Email)))
 			if v != "" {
 				bot.MessageUser(v, "Please fill out your time sheet!")
@@ -98,9 +107,8 @@ func (bot *Bot) SlapLateUsers() {
 
 // StoreSlackUsers is a method for collecting and storing slack users in database
 func (bot *Bot) StoreSlackUsers() {
-
+	log.Println("Collecting Slack Users")
 	slackUserData := bot.FetchSlackUsers()
-
 	bot.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("SlackUsers"))
 		for _, user := range slackUserData.Users {
@@ -114,4 +122,61 @@ func (bot *Bot) StoreSlackUsers() {
 		}
 		return nil
 	})
+}
+
+func (bot *Bot) createUserMap() map[string]string {
+	userMap := make(map[string]string)
+	data := bot.FetchTockUsers()
+	bot.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("SlackUsers"))
+		for _, user := range data.Users {
+			v := string(b.Get([]byte(user.Email)))
+			userMap[v] = user.Email
+		}
+		return nil
+	})
+	return userMap
+}
+
+// BotherSlackUsers is methods that slacks offending tock users when they type
+// write in slack
+func (bot *Bot) BotherSlackUsers() {
+	userMap := make(map[string]string)
+
+	// Create a ticker to renew the cache of tock users
+	ticker := time.NewTicker(20 * time.Minute)
+	quit := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				log.Println("Fetching Tock Users")
+				userMap = bot.createUserMap()
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	for {
+		// Get each incoming message
+		message, err := bot.GetMessage()
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Check if the user is an offending user
+		_, ok := userMap[message.User]
+		// If the user is an offending user message them, but remove them off the list
+		if message.Type == "message" && ok == true {
+			message.Text = fmt.Sprintf(
+				"<@%s>! So you have time for slack, but not tock hu?!",
+				message.User,
+			)
+			bot.PostMessage(message)
+			delete(userMap, message.User)
+		}
+
+	}
+
 }
