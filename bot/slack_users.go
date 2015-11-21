@@ -45,7 +45,7 @@ type UserList struct {
 }
 
 // ChannelResponse is a struct representation of a response from im.open
-type ChannelResponse struct {
+type channelResponse struct {
 	Ok          bool `json:"ok"`
 	NoOp        bool `json:"no_op"`
 	AlreadyOpen bool `json:"already_open"`
@@ -75,7 +75,7 @@ func (bot *Bot) FetchSlackUsers() *UserList {
 // MessageUser is a method to send a message to users
 func (bot *Bot) MessageUser(user string, message string) {
 
-	var channelData ChannelResponse
+	var channelData channelResponse
 
 	// Open channel
 	URL := "https://slack.com/api/im.open?"
