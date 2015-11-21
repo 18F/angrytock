@@ -18,9 +18,8 @@ func main() {
 	bot := bot.InitBot()
 	log.Println("Collecting Users")
 	bot.StoreSlackUsers()
-
 	c := cron.New()
-	c.AddFunc("*/5 * * * * *", func() {
+	c.AddFunc("*/30 * * * * *", func() {
 		log.Println("Slapping Users")
 		bot.SlapLateUsers()
 	})

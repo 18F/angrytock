@@ -104,10 +104,12 @@ func (bot *Bot) StoreSlackUsers() {
 	bot.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("SlackUsers"))
 		for _, user := range slackUserData.Users {
-			err := b.Put([]byte(user.Profile.Email), []byte(user.ID))
-			log.Print("Saved :", user.Profile.Email)
-			if err != nil {
-				log.Print(err)
+			if user.Profile.Email != "" {
+				err := b.Put([]byte(user.Profile.Email), []byte(user.ID))
+				log.Print("Saved :", user.Profile.Email)
+				if err != nil {
+					log.Print(err)
+				}
 			}
 		}
 		return nil
