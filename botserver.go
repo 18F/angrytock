@@ -5,7 +5,6 @@ Script for starting the bot server
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -16,14 +15,18 @@ import (
 func main() {
 
 	bot := bot.InitBot()
-	log.Println("Collecting Users")
-	bot.StoreSlackUsers()
+
+	// Slap tock users a couple times
 	c := cron.New()
-	c.AddFunc("*/30 * * * * *", func() {
-		log.Println("Slapping Users")
+	c.AddFunc("@weekly", func() {
+		bot.StoreSlackUsers()
+	})
+	c.AddFunc("0 0 0 * * 1", func() {
 		bot.SlapLateUsers()
 	})
 	c.Start()
+
+	bot.BotherSlackUsers()
 
 	// Start server
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
