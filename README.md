@@ -1,6 +1,6 @@
 # tock-bot
 
-[![Go Report Card](http://goreportcard.com/badge/geramirez/tock-bot)](http://goreportcard.com/report/geramirez/tock-bot)
+[![Go Report Card](http://goreportcard.com/badge/18F/angrytock)](http://goreportcard.com/report/18F/angrytock)
 
 Slackbot slapbot for slapping tock slackers
 
