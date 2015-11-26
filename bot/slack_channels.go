@@ -38,7 +38,7 @@ type channelsResponse struct {
 func (bot *Bot) fetchSlackChannels() *channelsResponse {
 	var data channelsResponse
 	URL := fmt.Sprintf("https://slack.com/api/channels.list?token=%s", bot.Token)
-	body := fetchData(URL)
+	body := FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
@@ -48,7 +48,7 @@ func (bot *Bot) fetchSlackChannels() *channelsResponse {
 
 func (bot *Bot) joinChannel(channelName string) {
 	URL := fmt.Sprintf("https://slack.com/api/channels.join?token=%s&name=%s", bot.Token, channelName)
-	body := fetchData(URL)
+	body := FetchData(URL)
 	log.Println(string(body))
 }
 

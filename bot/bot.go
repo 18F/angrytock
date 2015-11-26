@@ -4,7 +4,6 @@
 package bot
 
 import (
-	"crypto"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,10 +11,8 @@ import (
 	"os"
 	"time"
 
-	"golang.org/x/net/websocket"
-
-	"github.com/18F/hmacauth"
 	"github.com/boltdb/bolt"
+	"golang.org/x/net/websocket"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods
@@ -27,11 +24,10 @@ type Bot struct {
 	Token         string
 	DB            *bolt.DB
 	AuditEndpoint string
-	Auth          hmacauth.HmacAuth
 }
 
 // Open url and return the body of request
-func fetchData(URL string) []byte {
+func FetchData(URL string) []byte {
 
 	res, err := http.Get(URL)
 	if err != nil {
@@ -79,14 +75,8 @@ func InitBot() *Bot {
 	if auditendpoint == "" {
 		log.Fatal("AUDIT_ENDPOINT environment variable not found")
 	}
-	// Collect HMAC secret
-	HMACSecret := os.Getenv("HMAC_SECRET")
-	if HMACSecret == "" {
-		log.Fatal("HMAC_SECRET environment variable not found")
-	}
-	auth := hmacauth.NewHmacAuth(crypto.SHA1, []byte(HMACSecret), "X-Signature", nil)
 
-	return &Bot{id, ws, slackKey, db, auditendpoint, auth}
+	return &Bot{id, ws, slackKey, db, auditendpoint}
 }
 
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
@@ -130,8 +120,12 @@ func (bot *Bot) createUserMap() map[string]string {
 	bot.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("SlackUsers"))
 		for _, user := range data.Users {
+
 			v := string(b.Get([]byte(user.Email)))
-			userMap[v] = user.Email
+			if user.Email != "" && v != "" {
+				userMap[v] = user.Email
+			}
+
 		}
 		return nil
 	})
@@ -141,7 +135,10 @@ func (bot *Bot) createUserMap() map[string]string {
 // BotherSlackUsers is methods that slacks offending tock users when they type
 // write in slack
 func (bot *Bot) BotherSlackUsers() {
+	log.Println("Bothering Tock Users")
+	// Collect user data
 	userMap := make(map[string]string)
+	userMap = bot.createUserMap()
 
 	// Create a ticker to renew the cache of tock users
 	ticker := time.NewTicker(20 * time.Minute)
@@ -163,14 +160,16 @@ func (bot *Bot) BotherSlackUsers() {
 		// Get each incoming message
 		message, err := bot.GetMessage()
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
 		}
+		log.Print(message)
+
 		// Check if the user is an offending user
 		_, ok := userMap[message.User]
 		// If the user is an offending user message them, but remove them off the list
 		if message.Type == "message" && ok == true {
 			message.Text = fmt.Sprintf(
-				"<@%s>! So you have time for slack, but not tock hu?!",
+				"<@%s>! So you have time for slack, but not tock, huh?!",
 				message.User,
 			)
 			bot.PostMessage(message)

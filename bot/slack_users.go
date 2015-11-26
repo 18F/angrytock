@@ -62,7 +62,7 @@ func (bot *Bot) FetchSlackUsers() *UserList {
 
 	URL := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
 
-	body := fetchData(URL)
+	body := FetchData(URL)
 
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -81,7 +81,7 @@ func (bot *Bot) MessageUser(user string, message string) {
 	URL := "https://slack.com/api/im.open?"
 	URL += fmt.Sprintf("token=%s&user=%s", bot.Token, user)
 
-	body := fetchData(URL)
+	body := FetchData(URL)
 
 	err := json.Unmarshal(body, &channelData)
 	if err != nil {
