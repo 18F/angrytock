@@ -1,10 +1,12 @@
-package bot
+package tock
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/geramirez/tock-bot/helpers"
 )
 
 // User is a struct representation of the user JSON object from tock
@@ -44,33 +46,40 @@ type ReportingPeriodAuditDetails struct {
 	Users []User `json:"results"`
 }
 
-// Function for collecting the current reporting period
-func (bot *Bot) fetchCurrentReportingPeriod() string {
+// Tock struct contains the audit endpoint and methods associated with Tock
+type Tock struct {
+	// Get Audit endpoint
+	AuditEndpoint string
+}
 
+// InitTock initalizes the tock struct
+func InitTock() *Tock {
+	auditendpoint := os.Getenv("AUDIT_ENDPOINT")
+	if auditendpoint == "" {
+		log.Fatal("AUDIT_ENDPOINT environment variable not found")
+	}
+	return &Tock{auditendpoint}
+}
+
+// fetchCurrentReportingPeriod collects the current reporting period
+func (tock *Tock) fetchCurrentReportingPeriod() string {
 	var data ReportingPeriodAuditList
-
 	URL := fmt.Sprintf(os.Getenv("AUDIT_ENDPOINT"))
-
-	body := FetchData(URL)
-
+	body := helpers.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}
-
 	return data.ReportingPeriods[0].StartDate
 }
 
 // FetchTockUsers is a function for collecting all the users who have not
 // filled out thier time sheet for the current period
-func (bot *Bot) FetchTockUsers() *ReportingPeriodAuditDetails {
-
+func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
-	timePeriod := bot.fetchCurrentReportingPeriod()
-
-	URL := fmt.Sprintf("%s%s/", bot.AuditEndpoint, timePeriod)
-	body := FetchData(URL)
-
+	timePeriod := tock.fetchCurrentReportingPeriod()
+	URL := fmt.Sprintf("%s%s/", tock.AuditEndpoint, timePeriod)
+	body := helpers.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)

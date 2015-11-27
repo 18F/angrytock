@@ -2,10 +2,10 @@
 Package containing methods for connecting to slack api, reading messages,
 and responding.
 
-Code forked from `https://github.com/rapidloop/mybot`
+Code "forked" from `https://github.com/rapidloop/mybot`
 */
 
-package bot
+package slack
 
 import (
 	"encoding/json"
@@ -98,13 +98,13 @@ func NewSlackConnection(slackKey string) (*websocket.Conn, string) {
 }
 
 // GetMessage is a method for getting messages from the websocket connection
-func (bot *Bot) GetMessage() (m Message, err error) {
-	err = websocket.JSON.Receive(bot.Connection, &m)
+func (slack *Slack) GetMessage() (m Message, err error) {
+	err = websocket.JSON.Receive(slack.Connection, &m)
 	return
 }
 
 // PostMessage is a method for posting messages back into the slack
-func (bot *Bot) PostMessage(m Message) error {
+func (slack *Slack) PostMessage(m Message) error {
 	m.ID = atomic.AddUint64(&counter, 1)
-	return websocket.JSON.Send(bot.Connection, m)
+	return websocket.JSON.Send(slack.Connection, m)
 }

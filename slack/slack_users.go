@@ -1,4 +1,4 @@
-package bot
+package slack
 
 import (
 	"encoding/json"
@@ -56,48 +56,42 @@ type channelResponse struct {
 
 // FetchSlackUsers fetches a list of slack users and saves thier user ids by
 // emails in a database
-func (bot *Bot) FetchSlackUsers() *UserList {
-
+func (slack *Slack) FetchSlackUsers() *UserList {
+	// Get a list of users
 	var data UserList
-
-	URL := fmt.Sprintf("https://slack.com/api/users.list?token=%s", bot.Token)
-
-	body := FetchData(URL)
-
+	body := slack.FetchData("https://slack.com/api/users.list")
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}
 	return &data
-
 }
 
-// MessageUser is a method to send a message to users
-func (bot *Bot) MessageUser(user string, message string) {
-
-	var channelData channelResponse
-
+// openChannel opens or gets a direct message channel to user
+func (slack *Slack) openOrGetChannel(user string) *channelResponse {
 	// Open channel
-	URL := "https://slack.com/api/im.open?"
-	URL += fmt.Sprintf("token=%s&user=%s", bot.Token, user)
-
-	body := FetchData(URL)
-
+	var channelData channelResponse
+	URL := fmt.Sprintf("https://slack.com/api/im.open?user=%s", user)
+	body := slack.FetchData(URL)
 	err := json.Unmarshal(body, &channelData)
 	if err != nil {
 		log.Print(err)
 	}
+	return &channelData
+}
 
-	// Send message
-	URL = "https://slack.com/api/chat.postMessage?"
+// MessageUser is a method to send a message to users
+func (slack *Slack) MessageUser(user string, message string) {
+	// Open a chanel to the user
+	channelData := slack.openOrGetChannel(user)
+	// Send message to the user
+	URL := "https://slack.com/api/chat.postMessage?"
 	URL += fmt.Sprintf(
-		"token=%s&channel=%s&text=%s&as_user=true",
-		bot.Token,
+		"channel=%s&text=%s&as_user=true",
 		channelData.Channel.ID,
 		url.QueryEscape(message),
 	)
-
-	_, err = http.Get(URL)
+	_, err := http.Get(slack.AddToken(URL))
 	if err != nil {
 		log.Print("Failed to make request")
 	}

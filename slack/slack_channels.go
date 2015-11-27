@@ -1,7 +1,7 @@
 // These methods are going to be depricated because bots cannot join channels
 // by themselves.
 
-package bot
+package slack
 
 import (
 	"encoding/json"
@@ -35,10 +35,9 @@ type channelsResponse struct {
 	Ok bool `json:"ok"`
 }
 
-func (bot *Bot) fetchSlackChannels() *channelsResponse {
+func (slack *Slack) fetchSlackChannels() *channelsResponse {
 	var data channelsResponse
-	URL := fmt.Sprintf("https://slack.com/api/channels.list?token=%s", bot.Token)
-	body := FetchData(URL)
+	body := slack.FetchData("https://slack.com/api/channels.list")
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
@@ -46,16 +45,16 @@ func (bot *Bot) fetchSlackChannels() *channelsResponse {
 	return &data
 }
 
-func (bot *Bot) joinChannel(channelName string) {
-	URL := fmt.Sprintf("https://slack.com/api/channels.join?token=%s&name=%s", bot.Token, channelName)
-	body := FetchData(URL)
-	log.Println(string(body))
+func (slack *Slack) joinChannel(channelName string) {
+	URL := fmt.Sprintf("https://slack.com/api/channels.join?&name=%s", channelName)
+	//TODO: finish the joining channel method
+	_ = slack.FetchData(URL)
 }
 
 // JoinAllChannels is a method to make the bot join all the channels
-func (bot *Bot) JoinAllChannels() {
-	channels := bot.fetchSlackChannels()
+func (slack *Slack) JoinAllChannels() {
+	channels := slack.fetchSlackChannels()
 	for _, channel := range channels.Channels {
-		bot.joinChannel(channel.Name)
+		slack.joinChannel(channel.Name)
 	}
 }
