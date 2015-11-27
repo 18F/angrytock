@@ -1,0 +1,6 @@
+AngryMessages:
+  responses:
+    - <@%s>! So you have time for slack, but not tock, huh?!
+NiceMessages:
+  responses:
+    - <@%s> I'm actually a nice robot! :'(
