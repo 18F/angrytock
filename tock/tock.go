@@ -1,4 +1,4 @@
-package tock
+package tockPackage
 
 import (
 	"encoding/json"

@@ -1,7 +1,7 @@
 // These methods are going to be depricated because bots cannot join channels
 // by themselves.
 
-package slack
+package slackPackage
 
 import (
 	"encoding/json"

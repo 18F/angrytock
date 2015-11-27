@@ -5,7 +5,7 @@ and responding.
 Code "forked" from `https://github.com/rapidloop/mybot`
 */
 
-package slack
+package slackPackage
 
 import (
 	"encoding/json"

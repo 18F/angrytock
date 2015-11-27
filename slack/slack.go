@@ -1,4 +1,4 @@
-package slack
+package slackPackage
 
 import (
 	"log"

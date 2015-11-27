@@ -18,8 +18,8 @@ import (
 // emails and usernames
 type Bot struct {
 	DB    *bolt.DB
-	Slack *slack.Slack
-	Tock  *tock.Tock
+	Slack *slackPackage.Slack
+	Tock  *tockPackage.Tock
 }
 
 // InitBot method initalizes a bot
@@ -39,8 +39,8 @@ func InitBot() *Bot {
 		return nil
 	})
 
-	slack := slack.InitSlack()
-	tock := tock.InitTock()
+	slack := slackPackage.InitSlack()
+	tock := tockPackage.InitTock()
 
 	return &Bot{db, slack, tock}
 }
