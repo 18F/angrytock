@@ -1,6 +1,19 @@
+# Messages must contain a <@%s> to indicate the user the bot is messaging
+# AngryMessages are messages that the bot responds for being late on tock
 AngryMessages:
   responses:
     - <@%s>! So you have time for slack, but not tock, huh?!
+    - <@%s>! All your timesheets belong to us! So fill yours out!
+    - <@%s>! Time may be a human construct, but timesheets are not! >:0
+    - <@%s>! شو عم تعمل؟؟؟؟
+# NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
     - <@%s> I'm actually a nice robot! :'(
+    - Hold on, <@%s>, I'm busy filling out my timesheet
+    - الحب هو ما حدث بيننا، وعدم سجل الدوام هو كل ما لم يحدث <@%s> يا
+# ReminderMessages are messages the bot sends to a private channel
+# to remind users to fill out thier time sheets
+ReminderMessages:
+  responses:
+    - Please fill out your time sheet :)

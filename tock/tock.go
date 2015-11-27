@@ -49,7 +49,7 @@ type ReportingPeriodAuditDetails struct {
 // Tock struct contains the audit endpoint and methods associated with Tock
 type Tock struct {
 	// Get Audit endpoint
-	tockURL string
+	TockURL string
 }
 
 // InitTock initalizes the tock struct
@@ -65,7 +65,7 @@ func InitTock() *Tock {
 // fetchCurrentReportingPeriod collects the current reporting period
 func (tock *Tock) fetchCurrentReportingPeriod() string {
 	var data ReportingPeriodAuditList
-	URL := fmt.Sprintf(tock.tockURL)
+	URL := fmt.Sprintf(tock.TockURL)
 	body := helpers.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
@@ -79,7 +79,7 @@ func (tock *Tock) fetchCurrentReportingPeriod() string {
 func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	timePeriod := tock.fetchCurrentReportingPeriod()
-	URL := fmt.Sprintf("%s%s/", tock.tockURL, timePeriod)
+	URL := fmt.Sprintf("%s%s/", tock.TockURL, timePeriod)
 	body := helpers.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
