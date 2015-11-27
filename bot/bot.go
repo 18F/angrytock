@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/geramirez/tock-bot/messages"
 	"github.com/geramirez/tock-bot/slack"
 	"github.com/geramirez/tock-bot/tock"
 )
@@ -18,17 +19,18 @@ import (
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
-	DB      *bolt.DB
-	Slack   *slackPackage.Slack
-	Tock    *tockPackage.Tock
-	userMap map[string]string
+	DB          *bolt.DB
+	Slack       *slackPackage.Slack
+	Tock        *tockPackage.Tock
+	MessageRepo *messagesPackage.MessageRepository
+	userMap     map[string]string
 }
 
-// InitBot method initalizes a bot
-func InitBot() *Bot {
+// initDatabase initalizes a bolt database
+func initDatabase() *bolt.DB {
 
 	// Open connection to database
-	db, err := bolt.Open("my.db", 0600, nil)
+	db, err := bolt.Open("slackuser.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,11 +43,18 @@ func InitBot() *Bot {
 		return nil
 	})
 
+	return db
+}
+
+// InitBot method initalizes a bot
+func InitBot() *Bot {
+	db := initDatabase()
 	slack := slackPackage.InitSlack()
 	tock := tockPackage.InitTock()
+	messageRepo := messagesPackage.InitMessageRepository()
 	userMap := make(map[string]string)
 
-	return &Bot{db, slack, tock, userMap}
+	return &Bot{db, slack, tock, messageRepo, userMap}
 }
 
 // StoreSlackUsers is a method for collecting and storing slack users in database
@@ -112,23 +121,21 @@ func (bot *Bot) startUserMapUpdater() {
 func (bot *Bot) processMessage(message slackPackage.Message) {
 
 	// Check if the user is an offending user
-	_, isInMap := bot.userMap[message.User]
+	user := message.User
+	_, isInMap := bot.userMap[user]
 
 	switch {
+	// If the user is an offending user message them, but remove them off the list
 	case isInMap:
 		{
-			// If the user is an offending user message them, but remove them off the list
-			message.Text = fmt.Sprintf(
-				"<@%s>! So you have time for slack, but not tock, huh?!",
-				message.User,
-			)
+			message.Text = bot.MessageRepo.GenerateAngryMessage(user)
 			bot.Slack.PostMessage(message)
-			delete(bot.userMap, message.User)
+			delete(bot.userMap, user)
 		}
-
+	// If this is a message directed at the bot respond in a nice way
 	case strings.Contains(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
 		{
-			message.Text = "Random Quote"
+			message.Text = bot.MessageRepo.GenerateNiceMessage(user)
 			bot.Slack.PostMessage(message)
 		}
 	}
@@ -142,8 +149,8 @@ func (bot *Bot) SlapLateUsers() {
 	bot.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("SlackUsers"))
 		for _, user := range data.Users {
-			v := string(b.Get([]byte(user.Email)))
-			bot.Slack.MessageUser(v, "Please fill out your time sheet!")
+			userID := string(b.Get([]byte(user.Email)))
+			bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages())
 		}
 		return nil
 	})
