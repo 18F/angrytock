@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/geramirez/tock-bot/helpers"
 )
@@ -62,8 +63,22 @@ func InitTock() *Tock {
 	return &Tock{tockURL}
 }
 
+// fetchCurrentReportingPeriod gets the latest reporting time period that
+// has happend
+func fetchCurrentReportingPeriod(data *ReportingPeriodAuditList) string {
+	currentPeriodIndex := 0
+	for idx, period := range data.ReportingPeriods {
+		startDate, _ := time.Parse("2006-01-02", period.StartDate)
+		if startDate.Before(time.Now()) {
+			currentPeriodIndex = idx
+			break
+		}
+	}
+	return data.ReportingPeriods[currentPeriodIndex].StartDate
+}
+
 // fetchCurrentReportingPeriod collects the current reporting period
-func (tock *Tock) fetchCurrentReportingPeriod() string {
+func (tock *Tock) fetchReportingPeriod() string {
 	var data ReportingPeriodAuditList
 	URL := fmt.Sprintf(tock.TockURL)
 	body := helpers.FetchData(URL)
@@ -71,14 +86,14 @@ func (tock *Tock) fetchCurrentReportingPeriod() string {
 	if err != nil {
 		log.Print(err)
 	}
-	return data.ReportingPeriods[0].StartDate
+	return fetchCurrentReportingPeriod(&data)
 }
 
 // FetchTockUsers is a function for collecting all the users who have not
 // filled out thier time sheet for the current period
 func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
-	timePeriod := tock.fetchCurrentReportingPeriod()
+	timePeriod := tock.fetchReportingPeriod()
 	URL := fmt.Sprintf("%s%s/", tock.TockURL, timePeriod)
 	body := helpers.FetchData(URL)
 	err := json.Unmarshal(body, &data)
