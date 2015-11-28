@@ -23,3 +23,22 @@ func FetchData(URL string) []byte {
 	return body
 
 }
+
+// GenericDataFetcher is a generic function that takes a url string and returns
+// a bytes
+type GenericDataFetcher func(url string) []byte
+
+// DataFetcher is a struct that holds a function that of type DataFetcher
+type DataFetcher struct {
+	GenericDataFetcherHolder GenericDataFetcher
+}
+
+// NewDataFetcher get
+func NewDataFetcher(dataFetcher GenericDataFetcher) *DataFetcher {
+	return &DataFetcher{GenericDataFetcherHolder: dataFetcher}
+}
+
+// FetchData get data
+func (d *DataFetcher) FetchData(URL string) []byte {
+	return d.GenericDataFetcherHolder(URL)
+}

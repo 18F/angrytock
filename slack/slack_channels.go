@@ -37,7 +37,7 @@ type channelsResponse struct {
 
 func (slack *Slack) fetchSlackChannels() *channelsResponse {
 	var data channelsResponse
-	body := slack.FetchData("https://slack.com/api/channels.list")
+	body := slack.DataFetcher.FetchData("https://slack.com/api/channels.list")
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
@@ -48,7 +48,7 @@ func (slack *Slack) fetchSlackChannels() *channelsResponse {
 func (slack *Slack) joinChannel(channelName string) {
 	URL := fmt.Sprintf("https://slack.com/api/channels.join?&name=%s", channelName)
 	//TODO: finish the joining channel method
-	_ = slack.FetchData(URL)
+	_ = slack.DataFetcher.FetchData(URL)
 }
 
 // JoinAllChannels is a method to make the bot join all the channels
