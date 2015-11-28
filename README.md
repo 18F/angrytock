@@ -13,3 +13,6 @@ export PORT=5000 # will be set automatically by cloud foundry
 
 ## Deployment
 `cf push`
+
+## Running tests
+`go test ./... -cover `
