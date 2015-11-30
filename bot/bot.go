@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/18F/tock-bot/messages"
+	"github.com/18F/tock-bot/slack"
+	"github.com/18F/tock-bot/tock"
 	"github.com/boltdb/bolt"
-	"github.com/geramirez/tock-bot/messages"
-	"github.com/geramirez/tock-bot/slack"
-	"github.com/geramirez/tock-bot/tock"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods

@@ -3,6 +3,8 @@ package tockPackage
 import (
 	"testing"
 	"time"
+
+	"github.com/18F/tock-bot/helpers"
 )
 
 var test = []struct {

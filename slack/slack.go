@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/geramirez/tock-bot/helpers"
+	"github.com/18F/tock-bot/helpers"
 	"golang.org/x/net/websocket"
 )
 
