@@ -3,9 +3,9 @@
 AngryMessages:
   responses:
     - <@%s>! So you have time for Slack but not Tock?
-    - <@%s>! “I wish it need not have happened in my time," said Frodo. "So do I," said Gandalf, "and so do all who live to see such times. But that is not for them to decide. All we have to decide is how to Tock the time that is given us.” 
+    - <@%s>! “I wish it need not have happened in my time," said Frodo. "So do I," said Gandalf, "and so do all who live to see such times. But that is not for them to decide. All we have to decide is how to Tock the time that is given us.”
     - Do or do not fill out Tock. There is no try, <@%s>. —Yoda
-    - As Dr. Seuss once said, "How did it get so late so soon? It's night before it's afternoon." Don't forget to Tock.
+    - As Dr. Seuss once said, "How did it get so late so soon? It's night before it's afternoon." Don't forget to Tock, <@%s>. 
     - <@%s>! Time may be a human construct, but timesheets are not!
     - I confess I do not believe in time, but I still complete my timesheet, <@%s>. ―Vladimir Nabokov
     - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ―Mother Teresa
@@ -26,4 +26,3 @@ NiceMessages:
 ReminderMessages:
   responses:
     - Please fill out your timesheet :)
-
