@@ -1,7 +1,6 @@
 package messagesPackage
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 )
@@ -11,8 +10,7 @@ var messageRepo = InitMessageRepository()
 // Check that messages render properly with user name
 func TestAngryMessagesMessages(t *testing.T) {
 	for _, message := range messageRepo.AngryMessages.Messages {
-		renderedMessage := fmt.Sprintf(message, "testUser")
-		if strings.Contains(renderedMessage, "<@%!s(MISSING)>") {
+		if !strings.Contains(message, "<@%s>") {
 			t.Errorf(message)
 		}
 	}
@@ -21,8 +19,7 @@ func TestAngryMessagesMessages(t *testing.T) {
 // Check that messages render properly with user name
 func TestNiceMessagesMessages(t *testing.T) {
 	for _, message := range messageRepo.NiceMessages.Messages {
-		renderedMessage := fmt.Sprintf(message, "testUser")
-		if strings.Contains(renderedMessage, "<@%!s(MISSING)>") {
+		if !strings.Contains(message, "<@%s>") {
 			t.Errorf(message)
 		}
 	}
