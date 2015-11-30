@@ -7,17 +7,18 @@ AngryMessages:
     - Do or do not fill out Tock. There is no try, <@%s>. —Yoda
     - As Dr. Seuss once said, "How did it get so late so soon? It's night before it's afternoon." Don't forget to Tock.
     - <@%s>! Time may be a human construct, but timesheets are not!
-    - I confess I do not believe in time, but I still complete my timesheet, <@%s>. ― Vladimir Nabokov
-    - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ― Mother Teresa
+    - I confess I do not believe in time, but I still complete my timesheet, <@%s>. ―Vladimir Nabokov
+    - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ―Mother Teresa
     - <@%s>! شو عم تعمل؟؟؟؟
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
     - <@%s> I'm actually a nice robot! :'(
-    - Hold on, <@%s>, I'm busy filling out my timesheet
+    - The wisest are the most annoyed at the loss of time, <@%s>. —Dante Alighieri
+    - Hold on, <@%s>, I'm busy filling out my timesheet.
     - Time is what we want most but use worst, <@%s>. —William Penn
-    - <@%s>, the strongest of all warriors are these two — Time and Patience. ― Leo Tolstoy
-    - Inelegantly, and without my consent, time passed, <@%s>. ― Miranda July
+    - <@%s>, the strongest of all warriors are these two — Time and Patience. ―Leo Tolstoy
+    - Inelegantly, and without my consent, time passed, <@%s>. ―Miranda July
     - Unfortunately, the clock is ticking, the hours are going by. The past increases, the future recedes, <@%s>. —Haruki Murakami
     - الحب هو ما حدث بيننا، وعدم سجل الدوام هو كل ما لم يحدث <@%s> يا
 # ReminderMessages are messages the bot sends to a private channel
