@@ -1,19 +1,25 @@
 # Messages must contain a <@%s> to indicate the user the bot is messaging
-# AngryMessages are messages that the bot responds for being late on tock
+# AngryMessages are messages that the bot responds for being late on Tock
 AngryMessages:
   responses:
-    - <@%s>! So you have time for slack, but not tock, huh?!
-    - <@%s>! All your timesheets belong to us! So fill yours out!
-    - <@%s>! Time may be a human construct, but timesheets are not! >:0
+    - <@%s>! So you have time for Slack but not Tock?
+    - <@%s>! “I wish it need not have happened in my time," said Frodo. "So do I," said Gandalf, "and so do all who live to see such times. But that is not for them to decide. All we have to decide is how to Tock the time that is given us.” 
+    - Do or do not fill out Tock. There is no try, <@%s>. —Yoda
+    - As Dr. Seuss once said, "How did it get so late so soon? It's night before it's afternoon." Don't forget to Tock.
+    - <@%s>! Time may be a human construct, but timesheets are not!
+    - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ― Mother Teresa
     - <@%s>! شو عم تعمل؟؟؟؟
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
     - <@%s> I'm actually a nice robot! :'(
     - Hold on, <@%s>, I'm busy filling out my timesheet
+    - Time is what we want most but use worst, <@%s>. —William Penn
+    - Unfortunately, the clock is ticking, the hours are going by. The past increases, the future recedes, <@%s>. —Haruki Murakami
     - الحب هو ما حدث بيننا، وعدم سجل الدوام هو كل ما لم يحدث <@%s> يا
 # ReminderMessages are messages the bot sends to a private channel
-# to remind users to fill out thier time sheets
+# to remind users to fill out their timesheets
 ReminderMessages:
   responses:
-    - Please fill out your time sheet :)
+    - Please fill out your timesheet :)
+
