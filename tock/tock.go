@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/geramirez/tock-bot/helpers"
+	"github.com/18F/tock-bot/helpers"
 )
 
 // User is a struct representation of the user JSON object from tock
@@ -50,17 +50,21 @@ type ReportingPeriodAuditDetails struct {
 // Tock struct contains the audit endpoint and methods associated with Tock
 type Tock struct {
 	// Get Audit endpoint
-	TockURL string
+	TockURL     string
+	DataFetcher *helpers.DataFetcher
 }
 
 // InitTock initalizes the tock struct
 func InitTock() *Tock {
+	// Get the tock url
 	tockURL := os.Getenv("TOCK_URL")
 	if tockURL == "" {
 		log.Fatal("AUDIT_ENDPOINT environment variable not found")
 	}
 	tockURL += "/api/reporting_period_audit/"
-	return &Tock{tockURL}
+	// Initalize a new data fetcher
+	dataFetcher := helpers.NewDataFetcher(helpers.FetchData)
+	return &Tock{tockURL, dataFetcher}
 }
 
 // fetchCurrentReportingPeriod gets the latest reporting time period that
@@ -81,7 +85,7 @@ func fetchCurrentReportingPeriod(data *ReportingPeriodAuditList) string {
 func (tock *Tock) fetchReportingPeriod() string {
 	var data ReportingPeriodAuditList
 	URL := fmt.Sprintf(tock.TockURL)
-	body := helpers.FetchData(URL)
+	body := tock.DataFetcher.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
@@ -95,7 +99,7 @@ func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	timePeriod := tock.fetchReportingPeriod()
 	URL := fmt.Sprintf("%s%s/", tock.TockURL, timePeriod)
-	body := helpers.FetchData(URL)
+	body := tock.DataFetcher.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)

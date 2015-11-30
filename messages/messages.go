@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -32,7 +35,13 @@ type MessageRepository struct {
 // and a MessageRepository struct
 func InitMessageRepository() *MessageRepository {
 	var mrep MessageRepository
-	data, err := ioutil.ReadFile("messages/messages.yaml")
+	messageFile := "messages.yaml"
+	workingDir, _ := os.Getwd()
+	if !strings.HasSuffix(workingDir, "messages") {
+		messageFile = filepath.Join("messages", messageFile)
+	}
+	messageFile = filepath.Join(workingDir, messageFile)
+	data, err := ioutil.ReadFile(messageFile)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

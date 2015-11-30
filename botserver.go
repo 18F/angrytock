@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/geramirez/tock-bot/bot"
+	"github.com/18F/tock-bot/bot"
 	"github.com/robfig/cron"
 )
 

@@ -59,7 +59,7 @@ type channelResponse struct {
 func (slack *Slack) FetchSlackUsers() *UserList {
 	// Get a list of users
 	var data UserList
-	body := slack.FetchData("https://slack.com/api/users.list")
+	body := slack.DataFetcher.FetchData("https://slack.com/api/users.list")
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
@@ -72,7 +72,7 @@ func (slack *Slack) openOrGetChannel(user string) *channelResponse {
 	// Open channel
 	var channelData channelResponse
 	URL := fmt.Sprintf("https://slack.com/api/im.open?user=%s", user)
-	body := slack.FetchData(URL)
+	body := slack.DataFetcher.FetchData(URL)
 	err := json.Unmarshal(body, &channelData)
 	if err != nil {
 		log.Print(err)
