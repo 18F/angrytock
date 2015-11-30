@@ -55,3 +55,57 @@ func TestFetchCurrentReportingPeriod(t *testing.T) {
 		}
 	}
 }
+
+func mockDataFetcher(url string) []byte {
+	if url == "fakeurl" {
+		return []byte(`{
+			"count":62,
+			"next":null,
+			"previous":null,
+			"results":[
+				{"start_date":"2014-11-22","end_date":"2014-11-28","working_hours":40},
+				{"start_date":"2014-11-15","end_date":"2014-11-21","working_hours":40}]
+			}`)
+	} else if url == "fakeurl2014-11-22/" {
+		return []byte(`{
+	    "count":2,
+	    "next":null,
+	    "previous":null,
+	    "results":[
+	      {
+	        "id":1,
+	        "username":"user.one",
+	        "first_name":"user",
+	        "last_name":"one",
+	        "email":"user.one@gsa.gov"},
+	      {
+	        "id":2,
+	        "username":"user.two",
+	        "first_name":"user",
+	        "last_name":"two",
+	        "email":"user.two@gsa.gov"
+	      }
+	    ]
+	  }`)
+	}
+	return []byte(``)
+}
+
+var tock = Tock{
+	"fakeurl",
+	helpers.NewDataFetcher(mockDataFetcher),
+}
+
+func TestFetchTockReportingPeriods(t *testing.T) {
+	reportingPeriod := tock.fetchReportingPeriod()
+	if reportingPeriod != "2014-11-22" {
+		t.Errorf(reportingPeriod)
+	}
+}
+
+func TestFetchTockUsers(t *testing.T) {
+	userData := tock.FetchTockUsers()
+	if len(userData.Users) != 2 {
+		t.Error(userData)
+	}
+}

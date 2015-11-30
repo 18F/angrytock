@@ -56,17 +56,14 @@ type Tock struct {
 
 // InitTock initalizes the tock struct
 func InitTock() *Tock {
-
 	// Get the tock url
 	tockURL := os.Getenv("TOCK_URL")
 	if tockURL == "" {
 		log.Fatal("AUDIT_ENDPOINT environment variable not found")
 	}
 	tockURL += "/api/reporting_period_audit/"
-
 	// Initalize a new data fetcher
 	dataFetcher := helpers.NewDataFetcher(helpers.FetchData)
-
 	return &Tock{tockURL, dataFetcher}
 }
 
