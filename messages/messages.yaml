@@ -10,7 +10,7 @@ AngryMessages:
     - I confess I do not believe in time, but I still complete my timesheet, <@%s>. ―Vladimir Nabokov
     - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ―Mother Teresa
     - <@%s>! شو عم تعمل؟؟؟؟
-    - "I brought to mind the inquisitorial proceedings, and attempted from that point to deduce my real condition. The sentence had passed; and it appeared to me that a very long interval of time had since elapsed, so I logged it in Tock." The Pit and the Pendulum - Edgar Allen Poe
+    - "I brought to mind the inquisitorial proceedings, and attempted from that point to deduce my real condition. The sentence had passed; and it appeared to me that a very long interval of time had since elapsed, so I logged it in Tock, <@%s>." The Pit and the Pendulum - Edgar Allen Poe
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
@@ -22,7 +22,7 @@ NiceMessages:
     - Inelegantly, and without my consent, time passed, <@%s>. ―Miranda July
     - Unfortunately, the clock is ticking, the hours are going by. The past increases, the future recedes, <@%s>. —Haruki Murakami
     - الحب هو ما حدث بيننا، وعدم سجل الدوام هو كل ما لم يحدث <@%s> يا
-    - People assume that time is a strict progression of cause to effect, but *actually* from a non-linear, non-subjective viewpoint - it's more like a big ball of wibbly wobbly... time-y wimey... stuff that I log in tock. - Doctor Who
+    - <@%s>, People assume that time is a strict progression of cause to effect, but *actually* from a non-linear, non-subjective viewpoint - it's more like a big ball of wibbly wobbly... time-y wimey... stuff that I log in tock. - Doctor Who
 # ReminderMessages are messages the bot sends to a private channel
 # to remind users to fill out their timesheets
 ReminderMessages:
