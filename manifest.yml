@@ -1,5 +1,5 @@
 ---
 applications:
-- name:
-  memory: 128M
-  host: tock-slackbot
+- name: angrytock
+  memory: 64M
+  disk_quota: 64M

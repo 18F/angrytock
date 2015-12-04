@@ -98,7 +98,7 @@ func (tock *Tock) fetchReportingPeriod() string {
 func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	timePeriod := tock.fetchReportingPeriod()
-	URL := fmt.Sprintf("%s%s/", tock.TockURL, timePeriod)
+	URL := fmt.Sprintf("%s%s", tock.TockURL, timePeriod)
 	body := tock.DataFetcher.FetchData(URL)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
