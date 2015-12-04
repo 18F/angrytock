@@ -17,19 +17,16 @@ func main() {
 
 	bot := bot.InitBot()
 	bot.StoreSlackUsers()
-	bot.SlapLateUsers()
 
-	go bot.BotherSlackUsers()
-
-	// Slap tock users a couple times
+	// Update the list of stored slack users weekly
 	c := cron.New()
 	c.AddFunc("@weekly", func() {
 		bot.StoreSlackUsers()
 	})
-	c.AddFunc("0 0 0 * * 1", func() {
-		bot.SlapLateUsers()
-	})
 	c.Start()
+
+	// Start go routine to listen to tock users
+	go bot.ListenToSlackUsers()
 
 	// Start server
 	log.Print("Starting server on port :" + os.Getenv("PORT"))
