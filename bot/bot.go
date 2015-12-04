@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/18F/tock-bot/messages"
-	"github.com/18F/tock-bot/slack"
-	"github.com/18F/tock-bot/tock"
+	"github.com/18F/angrytock/messages"
+	"github.com/18F/angrytock/slack"
+	"github.com/18F/angrytock/tock"
 	"github.com/boltdb/bolt"
 )
 

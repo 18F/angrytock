@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/18F/tock-bot/helpers"
+	"github.com/18F/angrytock/helpers"
 )
 
 // User is a struct representation of the user JSON object from tock

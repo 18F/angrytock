@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/18F/tock-bot/helpers"
+	"github.com/18F/angrytock/helpers"
 )
 
 var test = []struct {
