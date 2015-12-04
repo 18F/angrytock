@@ -10,7 +10,8 @@ AngryMessages:
     - I confess I do not believe in time, but I still complete my timesheet, <@%s>. ―Vladimir Nabokov
     - Yesterday is gone. Tomorrow has not yet come. We have only today. Let us Tock, <@%s>. ―Mother Teresa
     - <@%s>! شو عم تعمل؟؟؟؟
-    - \"I brought to mind the inquisitorial proceedings, and attempted from that point to deduce my real condition. The sentence had passed; and it appeared to me that a very long interval of time had since elapsed, so I logged it in Tock, <@%s>." The Pit and the Pendulum - Edgar Allen Poe
+    - |
+      "I brought to mind the inquisitorial proceedings, and attempted from that point to deduce my real condition. The sentence had passed; and it appeared to me that a very long interval of time had since elapsed, so I logged it in Tock, <@%s>." The Pit and the Pendulum - Edgar Allen Poe
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
