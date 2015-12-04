@@ -15,8 +15,8 @@ var test = []struct {
 	{
 		ReportingPeriodAuditList{
 			ReportingPeriods: []ReportingPeriod{
-				ReportingPeriod{StartDate: "2014-01-07"},
-				ReportingPeriod{StartDate: "2014-01-01"},
+				ReportingPeriod{StartDate: "2014-01-07", EndDate: "2014-01-12"},
+				ReportingPeriod{StartDate: "2014-01-01", EndDate: "2014-01-05"},
 			},
 		},
 		"2014-01-07",
@@ -25,9 +25,12 @@ var test = []struct {
 	{
 		ReportingPeriodAuditList{
 			ReportingPeriods: []ReportingPeriod{
-				ReportingPeriod{StartDate: time.Now().Add(time.Hour * 48).Format("2006-01-02")},
-				ReportingPeriod{StartDate: "2014-01-07"},
-				ReportingPeriod{StartDate: "2014-01-01"},
+				ReportingPeriod{
+					StartDate: time.Now().Add(time.Hour * 24 * 2).Format("2006-01-02"),
+					EndDate:   time.Now().Add(time.Hour * 24 * 7).Format("2006-01-02"),
+				},
+				ReportingPeriod{StartDate: "2014-01-07", EndDate: "2014-01-12"},
+				ReportingPeriod{StartDate: "2014-01-01", EndDate: "2014-01-05"},
 			},
 		},
 		"2014-01-07",
@@ -36,9 +39,12 @@ var test = []struct {
 	{
 		ReportingPeriodAuditList{
 			ReportingPeriods: []ReportingPeriod{
-				ReportingPeriod{StartDate: time.Now().Add(time.Hour * -48).Format("2006-01-02")},
-				ReportingPeriod{StartDate: "2014-01-07"},
-				ReportingPeriod{StartDate: "2014-01-01"},
+				ReportingPeriod{
+					StartDate: time.Now().Add(time.Hour * -24 * 2).Format("2006-01-02"),
+					EndDate:   time.Now().Add(time.Hour * -24 * 7).Format("2006-01-02"),
+				},
+				ReportingPeriod{StartDate: "2014-01-07", EndDate: "2014-01-12"},
+				ReportingPeriod{StartDate: "2014-01-01", EndDate: "2014-01-05"},
 			},
 		},
 		time.Now().Add(time.Hour * -48).Format("2006-01-02"),

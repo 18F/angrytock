@@ -72,8 +72,8 @@ func InitTock() *Tock {
 func fetchCurrentReportingPeriod(data *ReportingPeriodAuditList) string {
 	currentPeriodIndex := 0
 	for idx, period := range data.ReportingPeriods {
-		startDate, _ := time.Parse("2006-01-02", period.StartDate)
-		if startDate.Before(time.Now()) {
+		endDate, _ := time.Parse("2006-01-02", period.EndDate)
+		if endDate.Before(time.Now()) {
 			currentPeriodIndex = idx
 			break
 		}
