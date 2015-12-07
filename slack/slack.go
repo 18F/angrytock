@@ -29,7 +29,6 @@ func addToken(Token string, URL string) string {
 	query.Add("token", Token)
 	parsedURL.RawQuery = query.Encode()
 	return parsedURL.String()
-
 }
 
 // A closure for initalizing a function that add url token to url strings
@@ -59,5 +58,4 @@ func InitSlack() *Slack {
 // AddToken is the external facing function for adding tokens
 func (slack *Slack) AddToken(URL string) string {
 	return addToken(slack.Token, URL)
-
 }

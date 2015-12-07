@@ -13,14 +13,13 @@ import (
 	"github.com/18F/angrytock/messages"
 	"github.com/18F/angrytock/slack"
 	"github.com/18F/angrytock/tock"
-	"github.com/boltdb/bolt"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
-	DB              *bolt.DB
+	UserEmailMap    map[string]string
 	Slack           *slackPackage.Slack
 	Tock            *tockPackage.Tock
 	MessageRepo     *messagesPackage.MessageRepository
@@ -28,36 +27,16 @@ type Bot struct {
 	masterList      []string
 }
 
-// initDatabase initalizes a bolt database
-func initDatabase() *bolt.DB {
-
-	// Open connection to database
-	db, err := bolt.Open("slackuser.db", 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Create a database bucket
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("SlackUsers"))
-		if err != nil {
-			log.Fatal(err)
-		}
-		return nil
-	})
-
-	return db
-}
-
 // InitBot method initalizes a bot
 func InitBot() *Bot {
-	db := initDatabase()
+	userEmailMap := make(map[string]string)
+	violatorUserMap := make(map[string]string)
+	masterList := strings.Split(os.Getenv("MASTER_LIST"), ",")
 	slack := slackPackage.InitSlack()
 	tock := tockPackage.InitTock()
 	messageRepo := messagesPackage.InitMessageRepository()
-	violatorUserMap := make(map[string]string)
-	masterList := strings.Split(os.Getenv("MASTER_LIST"), ",")
 
-	return &Bot{db, slack, tock, messageRepo, violatorUserMap, masterList}
+	return &Bot{userEmailMap, slack, tock, messageRepo, violatorUserMap, masterList}
 }
 
 // masterList checks if a user email is in the masterList and
@@ -74,20 +53,13 @@ func (bot *Bot) updateMasterList(userEmail string, userSlackID string) {
 func (bot *Bot) StoreSlackUsers() {
 	log.Println("Collecting Slack Users")
 	slackUserData := bot.Slack.FetchSlackUsers()
-	bot.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("SlackUsers"))
-		for _, user := range slackUserData.Users {
-			if user.Profile.Email != "" {
-				err := b.Put([]byte(user.Profile.Email), []byte(user.ID))
-				log.Print("Saved :", user.Profile.Email)
-				if err != nil {
-					log.Print(err)
-				}
-				bot.updateMasterList(user.Profile.Email, user.ID)
-			}
+	for _, user := range slackUserData.Users {
+		if user.Profile.Email != "" {
+			log.Println("Saved:", user.Profile.Email)
+			bot.UserEmailMap[user.Profile.Email] = user.ID
+			bot.updateMasterList(user.Profile.Email, user.ID)
 		}
-		return nil
-	})
+	}
 }
 
 // updateviolatorUserMap generates a new map containing the slack id and user email
@@ -95,21 +67,13 @@ func (bot *Bot) StoreSlackUsers() {
 func (bot *Bot) updateviolatorUserMap() {
 	violatorUserMap := make(map[string]string)
 	data := bot.Tock.FetchTockUsers()
-	bot.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("SlackUsers"))
-		for _, user := range data.Users {
-			v := string(b.Get([]byte(user.Email)))
-			if user.Email != "" && v != "" {
-				violatorUserMap[v] = user.Email
-			}
+	for _, user := range data.Users {
+		userID := bot.UserEmailMap[user.Email]
+		if user.Email != "" && userID != "" {
+			violatorUserMap[userID] = user.Email
 		}
-		return nil
-	})
+	}
 	bot.violatorUserMap = violatorUserMap
-}
-
-func delaySecond(n time.Duration) {
-	time.Sleep(n * time.Second)
 }
 
 // startviolatorUserMapUpdater begins a ticker that only keeps the
@@ -152,7 +116,7 @@ func (bot *Bot) processMessage(message slackPackage.Message) {
 	case ismasterUser && strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
 		{
 			if strings.Contains(message.Text, "slap users!") {
-				bot.SlapLateUsers()
+				go bot.SlapLateUsers()
 				message.Text = "Slapping Users!"
 			} else if strings.Contains(message.Text, "bother users!") {
 				bot.startviolatorUserMapUpdater()
@@ -188,14 +152,10 @@ func (bot *Bot) processMessage(message slackPackage.Message) {
 func (bot *Bot) SlapLateUsers() {
 	log.Println("Slapping Tock Users")
 	data := bot.Tock.FetchTockUsers()
-	bot.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("SlackUsers"))
-		for _, user := range data.Users {
-			userID := string(b.Get([]byte(user.Email)))
-			bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages())
-		}
-		return nil
-	})
+	for _, user := range data.Users {
+		userID := bot.UserEmailMap[user.Email]
+		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages())
+	}
 }
 
 // ListenToSlackUsers starts a loop that listens to tock users

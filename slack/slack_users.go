@@ -91,7 +91,8 @@ func (slack *Slack) MessageUser(user string, message string) {
 		channelData.Channel.ID,
 		url.QueryEscape(message),
 	)
-	_, err := http.Get(slack.AddToken(URL))
+	res, err := http.Get(slack.AddToken(URL))
+	res.Body.Close()
 	if err != nil {
 		log.Print("Failed to make request")
 	}
