@@ -1,0 +1,6 @@
+engines:
+  fixme:
+    enable: true
+ratings:
+  paths: []
+exclude_paths: []      
