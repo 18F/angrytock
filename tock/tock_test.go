@@ -63,7 +63,7 @@ func TestFetchCurrentReportingPeriod(t *testing.T) {
 }
 
 func mockDataFetcher(url string) []byte {
-	if url == "fakeurl" {
+	if url == "fakendpoint" {
 		return []byte(`{
 			"count":62,
 			"next":null,
@@ -72,7 +72,7 @@ func mockDataFetcher(url string) []byte {
 				{"start_date":"2014-11-22","end_date":"2014-11-28","working_hours":40},
 				{"start_date":"2014-11-15","end_date":"2014-11-21","working_hours":40}]
 			}`)
-	} else if url == "fakeurl2014-11-22/" {
+	} else {
 		return []byte(`{
 	    "count":2,
 	    "next":null,
@@ -94,11 +94,11 @@ func mockDataFetcher(url string) []byte {
 	    ]
 	  }`)
 	}
-	return []byte(``)
 }
 
 var tock = Tock{
 	"fakeurl",
+	"fakendpoint",
 	helpers.NewDataFetcher(mockDataFetcher),
 }
 
