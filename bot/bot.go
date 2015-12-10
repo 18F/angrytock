@@ -9,6 +9,10 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/18F/angrytock/messages"
+	"github.com/18F/angrytock/slack"
+	"github.com/18F/angrytock/tock"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods
@@ -150,7 +154,7 @@ func (bot *Bot) SlapLateUsers() {
 	data := bot.Tock.FetchTockUsers()
 	for _, user := range data.Users {
 		userID := bot.UserEmailMap[user.Email]
-		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.TockUrl))
+		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.TockURL))
 	}
 }
 
