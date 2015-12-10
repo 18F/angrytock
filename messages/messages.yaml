@@ -28,4 +28,6 @@ NiceMessages:
 # to remind users to fill out their timesheets
 ReminderMessages:
   responses:
-    - Please fill out your timesheet :)
+    - Please fill out your timesheet ^_^ , %s
+    - Just a reminder :) to fill out your timesheet, %s
+    - Do me a favor and fill out your timesheets, %s

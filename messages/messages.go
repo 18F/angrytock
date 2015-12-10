@@ -68,6 +68,8 @@ func (mrep *MessageRepository) GenerateNiceMessage(user string) string {
 }
 
 // GenerateReminderMessages creates a nice message
-func (mrep *MessageRepository) GenerateReminderMessages() string {
-	return mrep.ReminderMessages.fetchRandomMessage()
+func (mrep *MessageRepository) GenerateReminderMessages(tockUrl string) string {
+	return fmt.Sprintf(mrep.ReminderMessages.fetchRandomMessage(),
+		tockUrl,
+	)
 }
