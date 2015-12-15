@@ -154,7 +154,7 @@ func (bot *Bot) SlapLateUsers() {
 	data := bot.Tock.FetchTockUsers()
 	for _, user := range data.Users {
 		userID := bot.UserEmailMap[user.Email]
-		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.TockURL))
+		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.UserTockURL))
 	}
 }
 

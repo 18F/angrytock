@@ -51,6 +51,7 @@ type ReportingPeriodAuditDetails struct {
 type Tock struct {
 	// Get Audit endpoint
 	TockURL       string
+	UserTockURL   string
 	AuditEndpoint string
 	DataFetcher   *helpers.DataFetcher
 }
@@ -60,12 +61,16 @@ func InitTock() *Tock {
 	// Get the tock url
 	tockURL := os.Getenv("TOCK_URL")
 	if tockURL == "" {
-		log.Fatal("AUDIT_ENDPOINT environment variable not found")
+		log.Fatal("TOCK_URL environment variable not found")
+	}
+	userTockURL := os.Getenv("USER_TOCK_URL")
+	if userTockURL == "" {
+		log.Fatal("USER_TOCK_URL environment variable not found")
 	}
 	auditEndpoint := tockURL + "/api/reporting_period_audit/"
 	// Initalize a new data fetcher
 	dataFetcher := helpers.NewDataFetcher(helpers.FetchData)
-	return &Tock{tockURL, auditEndpoint, dataFetcher}
+	return &Tock{tockURL, userTockURL, auditEndpoint, dataFetcher}
 }
 
 // fetchCurrentReportingPeriod gets the latest reporting time period that
