@@ -62,7 +62,7 @@ func InitTock() *Tock {
 	if tockURL == "" {
 		log.Fatal("AUDIT_ENDPOINT environment variable not found")
 	}
-	auditEndpoint := "/api/reporting_period_audit/"
+	auditEndpoint := tockURL + "/api/reporting_period_audit/"
 	// Initalize a new data fetcher
 	dataFetcher := helpers.NewDataFetcher(helpers.FetchData)
 	return &Tock{tockURL, auditEndpoint, dataFetcher}
