@@ -134,7 +134,7 @@ func (bot *Bot) processMessage(message slackPackage.Message) {
 	case isViolator:
 		{
 			log.Println(message.Text)
-			message.Text = bot.MessageRepo.GenerateAngryMessage(user)
+			message.Text = bot.MessageRepo.Angry.GenerateMessage(user)
 			bot.Slack.PostMessage(message)
 			delete(bot.violatorUserMap, user)
 		}
@@ -142,7 +142,7 @@ func (bot *Bot) processMessage(message slackPackage.Message) {
 	case strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
 		{
 			log.Println(message.Text)
-			message.Text = bot.MessageRepo.GenerateNiceMessage(user)
+			message.Text = bot.MessageRepo.Nice.GenerateMessage(user)
 			bot.Slack.PostMessage(message)
 		}
 	}
@@ -154,7 +154,10 @@ func (bot *Bot) SlapLateUsers() {
 	data := bot.Tock.FetchTockUsers()
 	for _, user := range data.Users {
 		userID := bot.UserEmailMap[user.Email]
-		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.UserTockURL))
+		bot.Slack.MessageUser(
+			userID,
+			bot.MessageRepo.Reminder.GenerateMessage(bot.Tock.UserTockURL),
+		)
 	}
 }
 

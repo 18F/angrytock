@@ -23,12 +23,19 @@ func (msgs MessageArray) fetchRandomMessage() string {
 	return msgs.Messages[rand.Intn(len(msgs.Messages))]
 }
 
+func (msgs MessageArray) GenerateMessage(filler string) string {
+	return fmt.Sprintf(
+		msgs.fetchRandomMessage(),
+		filler,
+	)
+}
+
 // MessageRepository Contains the messages and methods for generating
 // responses for the bot
 type MessageRepository struct {
-	AngryMessages    *MessageArray `yaml:"AngryMessages"`
-	NiceMessages     *MessageArray `yaml:"NiceMessages"`
-	ReminderMessages *MessageArray `yaml:"ReminderMessages"`
+	Angry    *MessageArray `yaml:"AngryMessages"`
+	Nice     *MessageArray `yaml:"NiceMessages"`
+	Reminder *MessageArray `yaml:"ReminderMessages"`
 }
 
 // InitMessageRepository loads all of the data into a MessageRepository
@@ -49,27 +56,4 @@ func InitMessageRepository() *MessageRepository {
 		log.Fatalf("error: %v", err)
 	}
 	return &mrep
-}
-
-// GenerateAngryMessage creates an angry message
-func (mrep *MessageRepository) GenerateAngryMessage(user string) string {
-	return fmt.Sprintf(
-		mrep.AngryMessages.fetchRandomMessage(),
-		user,
-	)
-}
-
-// GenerateNiceMessage creates a nice message
-func (mrep *MessageRepository) GenerateNiceMessage(user string) string {
-	return fmt.Sprintf(
-		mrep.NiceMessages.fetchRandomMessage(),
-		user,
-	)
-}
-
-// GenerateReminderMessages creates a nice message
-func (mrep *MessageRepository) GenerateReminderMessages(tockUrl string) string {
-	return fmt.Sprintf(mrep.ReminderMessages.fetchRandomMessage(),
-		tockUrl,
-	)
 }
