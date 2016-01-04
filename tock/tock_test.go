@@ -63,7 +63,7 @@ func TestFetchCurrentReportingPeriod(t *testing.T) {
 }
 
 func mockDataFetcher(url string) []byte {
-	if url == "fakendpoint" {
+	if url == "AuditEndpoint" {
 		return []byte(`{
 			"count":62,
 			"next":null,
@@ -97,8 +97,9 @@ func mockDataFetcher(url string) []byte {
 }
 
 var tock = Tock{
-	"fakeurl",
-	"fakendpoint",
+	"TockURL",
+	"UserTockURL",
+	"AuditEndpoint",
 	helpers.NewDataFetcher(mockDataFetcher),
 }
 
