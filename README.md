@@ -5,10 +5,13 @@ A slack bot for "reminding" [Tock](https://github.com/18F/tock) users who are la
 
 ## Bot Master User Commands
 `@botname: slap users!` : Reminds users to fill in their time sheets one time.  
-`@botname: bother users!` : Searches for users writing in Slack and tells them to fill in their time sheets. Will only bother user 1 time and is only active for 30 minutes.  
+`@botname: bother users!` : Searches for users writing in Slack and tells them to fill in their time sheets. Will only bother user 1 time and is only active for 30 minutes. 
+`@botname: who is late?` : Returns a list of users who are late.
+ 
 
 ## Regular interactions
-Will respond with spicy comment about time if user starts messages with bot name. (ie `@botname: hi`) Mentions will not trigger responses.  
+`@botname: status` : Will check the Tock API and tell the user if they have filled out their timesheet.
+`@botname: say something` : Will respond to the use with a message about time. 
 
 ## Running tests
 `go test ./... -cover `
