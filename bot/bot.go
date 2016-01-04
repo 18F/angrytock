@@ -97,64 +97,16 @@ func (bot *Bot) startviolatorUserMapUpdater() {
 	}()
 }
 
-// processMessage handles incomming messages
-func (bot *Bot) processMessage(message slackPackage.Message) {
-
-	// Check if the user is an offending user
-	user := message.User
-	_, isViolator := bot.violatorUserMap[user]
-	// Check if user is in masterList
-	var ismasterUser bool
-	for _, masterUser := range bot.masterList {
-		if masterUser == user {
-			ismasterUser = true
-		}
-	}
-
-	switch {
-	// Master user commands
-	case ismasterUser && strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
-		{
-			if strings.Contains(message.Text, "slap users!") {
-				go bot.SlapLateUsers()
-				message.Text = "Slapping Users!"
-			} else if strings.Contains(message.Text, "bother users!") {
-				bot.startviolatorUserMapUpdater()
-				message.Text = "Starting to bother users!"
-			} else {
-				message.Text = fmt.Sprintf(
-					"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`",
-					bot.Slack.ID,
-					bot.Slack.ID,
-				)
-			}
-			bot.Slack.PostMessage(message)
-		}
-	// If the user is an offending user message them, but remove them off the list
-	case isViolator:
-		{
-			log.Println(message.Text)
-			message.Text = bot.MessageRepo.GenerateAngryMessage(user)
-			bot.Slack.PostMessage(message)
-			delete(bot.violatorUserMap, user)
-		}
-		// If this is a message directed at the bot respond in a nice way
-	case strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
-		{
-			log.Println(message.Text)
-			message.Text = bot.MessageRepo.GenerateNiceMessage(user)
-			bot.Slack.PostMessage(message)
-		}
-	}
-}
-
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
 func (bot *Bot) SlapLateUsers() {
 	log.Println("Slapping Tock Users")
 	data := bot.Tock.FetchTockUsers()
 	for _, user := range data.Users {
 		userID := bot.UserEmailMap[user.Email]
-		bot.Slack.MessageUser(userID, bot.MessageRepo.GenerateReminderMessages(bot.Tock.UserTockURL))
+		bot.Slack.MessageUser(
+			userID,
+			bot.MessageRepo.Reminder.GenerateMessage(bot.Tock.UserTockURL),
+		)
 	}
 }
 
@@ -170,4 +122,33 @@ func (bot *Bot) ListenToSlackUsers() {
 			bot.processMessage(message)
 		}
 	}
+}
+
+func (bot *Bot) isLateUser(slackUserID string) bool {
+	found := false
+	data := bot.Tock.FetchTockUsers()
+	for _, tockUser := range data.Users {
+		if slackUserID == bot.UserEmailMap[tockUser.Email] {
+			found = true
+		}
+	}
+	return found
+}
+
+func (bot *Bot) fetchLateUsers() (string, int) {
+	var lateList string
+	var slackUserID string
+	var counter int
+	data := bot.Tock.FetchTockUsers()
+	for _, tockUser := range data.Users {
+		slackUserID = bot.UserEmailMap[tockUser.Email]
+		if slackUserID != "" {
+			lateList += fmt.Sprintf("<@%s>, ", slackUserID)
+			counter++
+		}
+	}
+	if lateList == "" {
+		lateList = "No people"
+	}
+	return lateList, counter
 }
