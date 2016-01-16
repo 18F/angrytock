@@ -13,6 +13,7 @@ AngryMessages:
     - |
       "I brought to mind the inquisitorial proceedings, and attempted from that point to deduce my real condition. The sentence had passed; and it appeared to me that a very long interval of time had since elapsed, so I logged it in Tock, <@%s>." The Pit and the Pendulum - Edgar Allen Poe
     - <@%s>! "Time is a gift, given to you, given to give you the time you need, the time you need to fill out your timesheet." -Norton Juster
+    - <@%s>! "A time to gain, a time to lose!  A time to rend, a time to sew!  A time for love, a time for hate!  A time for Tock, I swear it's not too late." Turn! Turn! Turn! - The Byrds
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
