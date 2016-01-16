@@ -40,50 +40,79 @@ func (bot *Bot) processMessage(message slackPackage.Message) {
 	}
 }
 
+// masterMessages contains the commands for admins
 func (bot *Bot) masterMessages(message slackPackage.Message) {
-
-	if strings.Contains(message.Text, "slap users!") {
-		go bot.SlapLateUsers()
-		message.Text = "Slapping Users!"
-	} else if strings.Contains(message.Text, "bother users!") {
-		bot.startviolatorUserMapUpdater()
-		message.Text = "Starting to bother users!"
-	} else if strings.Contains(message.Text, "who is late?") {
-		lateList, total := bot.fetchLateUsers()
-		message.Text = fmt.Sprintf("%s are late! %d people total.", lateList, total)
-	} else {
-		message.Text = fmt.Sprintf(
-			"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
-			bot.Slack.ID,
-			bot.Slack.ID,
-			bot.Slack.ID,
-		)
+	switch {
+	case strings.Contains(message.Text, "slap users"):
+		{
+			go bot.SlapLateUsers()
+			message.Text = "Slapping Users!"
+		}
+	case strings.Contains(message.Text, "bother users"):
+		{
+			bot.startviolatorUserMapUpdater()
+			message.Text = "Starting to bother users!"
+		}
+	case strings.Contains(message.Text, "who is late?"):
+		{
+			lateList, total := bot.fetchLateUsers()
+			message.Text = fmt.Sprintf("%s are late! %d people total.", lateList, total)
+		}
+	default:
+		{
+			message.Text = fmt.Sprintf(
+				"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
+				bot.Slack.ID,
+				bot.Slack.ID,
+				bot.Slack.ID,
+			)
+		}
 	}
 	bot.Slack.PostMessage(message)
 
 }
 
+// violatorMessage has the message for a late user
 func (bot *Bot) violatorMessage(message slackPackage.Message, user string) {
-	message.Text = bot.MessageRepo.Angry.GenerateMessage(user)
-	bot.Slack.PostMessage(message)
+	// Check if user is still late
+	if bot.isLateUser(user) {
+		message.Text = bot.MessageRepo.Angry.GenerateMessage(user)
+	} else {
+		message.Text = fmt.Sprintf(
+			"<@%s>, I was about to yell at you, but then I realized you actually filled outyour timesheet. Thanks! ^_^",
+			user,
+		)
+	}
 	delete(bot.violatorUserMap, user)
+	bot.Slack.PostMessage(message)
 
 }
 
+// niceMessage are commands for user who are not late
 func (bot *Bot) niceMessage(message slackPackage.Message, user string) {
 
-	if strings.Contains(message.Text, "say something") {
-		message.Text = bot.MessageRepo.Nice.GenerateMessage(user)
-		bot.Slack.PostMessage(message)
-	} else if strings.Contains(message.Text, "status") {
-		// Start a go func because the search may take a while
-		go func() {
-			if bot.isLateUser(user) {
-				message.Text = fmt.Sprintf("<@%s>, you're late -_-", user)
-			} else {
-				message.Text = fmt.Sprintf("<@%s>, you're on time! ^_^", user)
-			}
+	switch {
+	case strings.Contains(message.Text, "say"):
+		{
+			message.Text = bot.MessageRepo.Nice.GenerateMessage(user)
 			bot.Slack.PostMessage(message)
-		}()
+		}
+	case strings.HasSuffix(message.Text, "ping"):
+		{
+			message.Text = "pong!"
+			bot.Slack.PostMessage(message)
+		}
+	case strings.Contains(message.Text, "status"):
+		{
+			// Start a go func because the search may take a while
+			go func() {
+				if bot.isLateUser(user) {
+					message.Text = fmt.Sprintf("<@%s>, you're late -_-", user)
+				} else {
+					message.Text = fmt.Sprintf("<@%s>, you're on time! ^_^", user)
+				}
+				bot.Slack.PostMessage(message)
+			}()
+		}
 	}
 }
