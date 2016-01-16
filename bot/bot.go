@@ -66,13 +66,14 @@ func (bot *Bot) StoreSlackUsers() {
 // of late tock users
 func (bot *Bot) updateviolatorUserMap() {
 	violatorUserMap := make(map[string]string)
-	data := bot.Tock.FetchTockUsers()
-	for _, user := range data.Users {
-		userID := bot.UserEmailMap[user.Email]
-		if user.Email != "" && userID != "" {
-			violatorUserMap[userID] = user.Email
-		}
-	}
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			userID := bot.UserEmailMap[user.Email]
+			if user.Email != "" && userID != "" {
+				violatorUserMap[userID] = user.Email
+			}
+		},
+	)
 	bot.violatorUserMap = violatorUserMap
 }
 
@@ -100,14 +101,17 @@ func (bot *Bot) startviolatorUserMapUpdater() {
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
 func (bot *Bot) SlapLateUsers() {
 	log.Println("Slapping Tock Users")
-	data := bot.Tock.FetchTockUsers()
-	for _, user := range data.Users {
-		userID := bot.UserEmailMap[user.Email]
-		bot.Slack.MessageUser(
-			userID,
-			bot.MessageRepo.Reminder.GenerateMessage(bot.Tock.UserTockURL),
-		)
-	}
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			userID := bot.UserEmailMap[user.Email]
+			if userID != "" {
+				bot.Slack.MessageUser(
+					userID,
+					bot.MessageRepo.Reminder.GenerateMessage(bot.Tock.UserTockURL),
+				)
+			}
+		},
+	)
 }
 
 // ListenToSlackUsers starts a loop that listens to tock users
@@ -124,31 +128,38 @@ func (bot *Bot) ListenToSlackUsers() {
 	}
 }
 
+// isLateUser returns if the user is late.
 func (bot *Bot) isLateUser(slackUserID string) bool {
 	found := false
-	data := bot.Tock.FetchTockUsers()
-	for _, tockUser := range data.Users {
-		if slackUserID == bot.UserEmailMap[tockUser.Email] {
-			found = true
-		}
-	}
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			if slackUserID == bot.UserEmailMap[user.Email] {
+				found = true
+			}
+		},
+	)
 	return found
 }
 
+// fetchLateUsers returns a list of late users
 func (bot *Bot) fetchLateUsers() (string, int) {
 	var lateList string
 	var slackUserID string
 	var counter int
-	data := bot.Tock.FetchTockUsers()
-	for _, tockUser := range data.Users {
-		slackUserID = bot.UserEmailMap[tockUser.Email]
-		if slackUserID != "" {
-			lateList += fmt.Sprintf("<@%s>, ", slackUserID)
-			counter++
-		}
-	}
+
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			slackUserID = bot.UserEmailMap[user.Email]
+			if slackUserID != "" {
+				lateList += fmt.Sprintf("<@%s>, ", slackUserID)
+				counter++
+			}
+		},
+	)
+
 	if lateList == "" {
 		lateList = "No people"
 	}
+
 	return lateList, counter
 }

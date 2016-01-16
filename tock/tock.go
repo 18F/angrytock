@@ -101,14 +101,46 @@ func (tock *Tock) fetchReportingPeriod() string {
 
 // FetchTockUsers is a function for collecting all the users who have not
 // filled out thier time sheet for the current period
-func (tock *Tock) FetchTockUsers() *ReportingPeriodAuditDetails {
+func (tock *Tock) FetchTockUsers(endpoint string) *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
-	timePeriod := tock.fetchReportingPeriod()
-	URL := fmt.Sprintf("%s%s", tock.AuditEndpoint, timePeriod)
-	body := tock.DataFetcher.FetchData(URL)
+	body := tock.DataFetcher.FetchData(endpoint)
 	err := json.Unmarshal(body, &data)
 	if err != nil {
 		log.Print(err)
 	}
 	return &data
+}
+
+// TockUserGen returns a generator that returns a steram
+// of user data by paging through the api
+func (tock *Tock) TockUserGen() func() *ReportingPeriodAuditDetails {
+	timePeriod := tock.fetchReportingPeriod()
+	baseEndpoint := fmt.Sprintf("%s%s", tock.AuditEndpoint, timePeriod)
+	currentPage := 1
+	newEndpoint := baseEndpoint + fmt.Sprintf("?page=%d", currentPage)
+	return func() *ReportingPeriodAuditDetails {
+		usersResponse := tock.FetchTockUsers(newEndpoint)
+		currentPage++
+		newEndpoint = baseEndpoint + fmt.Sprintf("&page=%d", currentPage)
+		return usersResponse
+	}
+}
+
+// UserApplier loops through users and applies a anonymous function to a list
+// of late tock users
+func (tock *Tock) UserApplier(applyFunc func(user User)) {
+	// user Generator
+	userGen := tock.TockUserGen()
+	// get event indefinitely
+	for {
+		apiResponse := userGen()
+		for _, user := range apiResponse.Users {
+			applyFunc(user)
+		}
+		// Break loop if there are no more urls
+		if apiResponse.NextURL == "" {
+			break
+		}
+	}
+
 }

@@ -1,6 +1,7 @@
 package tockPackage
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -111,7 +112,9 @@ func TestFetchTockReportingPeriods(t *testing.T) {
 }
 
 func TestFetchTockUsers(t *testing.T) {
-	userData := tock.FetchTockUsers()
+	reportingPeriod := tock.fetchReportingPeriod()
+	baseEndpoint := fmt.Sprintf("%s%s", tock.AuditEndpoint, reportingPeriod)
+	userData := tock.FetchTockUsers(baseEndpoint)
 	if len(userData.Users) != 2 {
 		t.Error(userData)
 	}
