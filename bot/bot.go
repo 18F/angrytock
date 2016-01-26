@@ -54,7 +54,7 @@ func (bot *Bot) StoreSlackUsers() {
 	log.Println("Collecting Slack Users")
 	slackUserData := bot.Slack.FetchSlackUsers()
 	for _, user := range slackUserData.Users {
-		if user.Profile.Email != "" {
+		if strings.HasSuffix(user.Profile.Email, ".gov") {
 			log.Println("Saved:", user.Profile.Email)
 			bot.UserEmailMap[user.Profile.Email] = user.ID
 			bot.updateMasterList(user.Profile.Email, user.ID)
