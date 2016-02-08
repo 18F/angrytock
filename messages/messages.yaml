@@ -15,6 +15,7 @@ AngryMessages:
     - <@%s>! "Time is a gift, given to you, given to give you the time you need, the time you need to fill out your timesheet." -Norton Juster
     - <@%s>! "A time to gain, a time to lose!  A time to rend, a time to sew!  A time for love, a time for hate!  A time for Tock, I swear it's not too late." Turn! Turn! Turn! - The Byrds
     - <@%s>! "Tell it to me slowly!  Tell me what, I really want to know!  It's that time of the week for Tocking." Time of the Season - The Zombies
+    - <@%s>! "Well I Tock about it, Tock about it, Tock about it, Tock about it, Tock about, Tock about, Tock about workin'!" Funkytown - Lipps Inc.
 # NiceMessages are generic messages the bot respondes with when people write to it
 NiceMessages:
   responses:
