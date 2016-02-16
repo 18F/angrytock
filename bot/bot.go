@@ -120,7 +120,7 @@ func (bot *Bot) ListenToSlackUsers() {
 	// Creating a for loop to catch channel messages from slack
 	for {
 		// Get each incoming message
-		message, _ := bot.Slack.GetMessage()
+		message := bot.Slack.GetMessage()
 		// Only process messages
 		if message.Type == "message" {
 			bot.processMessage(message)
