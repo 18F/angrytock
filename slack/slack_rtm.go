@@ -15,7 +15,7 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
-
+        "time"
 	"golang.org/x/net/websocket"
 )
 
@@ -102,6 +102,7 @@ func (slack *Slack) GetMessage() (m Message, err error) {
 	err = websocket.JSON.Receive(slack.Connection, &m)
 	if err != nil {
 		log.Print(err)
+		time.Sleep(1 * time.Second)
 	}
 	return
 }
