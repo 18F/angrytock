@@ -16,12 +16,13 @@ import (
 func main() {
 
 	bot := bot.InitBot()
+
 	bot.StoreSlackUsers()
 
 	// Update the list of stored slack users weekly
 	c := cron.New()
 	c.AddFunc("@weekly", func() {
-		bot.StoreSlackUsers()
+		go bot.StoreSlackUsers()
 	})
 	c.Start()
 
