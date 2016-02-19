@@ -2,41 +2,14 @@ package slackPackage
 
 import (
 	"log"
-	"net/url"
 	"os"
 
-	"github.com/18F/angrytock/helpers"
-	"golang.org/x/net/websocket"
+	"github.com/nlopes/slack"
 )
 
-// Slack struct stores the data and websocket connection for slack rti
+// Slack sturct extend the slackRTM method
 type Slack struct {
-	ID          string
-	Token       string
-	Connection  *websocket.Conn
-	DataFetcher *helpers.DataFetcher
-}
-
-// addToken add the slack token to the url
-func addToken(Token string, URL string) string {
-
-	parsedURL, err := url.Parse(URL)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Add the token
-	query := parsedURL.Query()
-	query.Add("token", Token)
-	parsedURL.RawQuery = query.Encode()
-	return parsedURL.String()
-}
-
-// A closure for initalizing a function that add url token to url strings
-// and then returns the data
-func dataFetcherClosure(token string) func(URL string) []byte {
-	return func(URL string) []byte {
-		return helpers.FetchData(addToken(token, URL))
-	}
+	*slack.RTM
 }
 
 // InitSlack initalizes the struct object
@@ -46,16 +19,33 @@ func InitSlack() *Slack {
 	if key == "" {
 		log.Fatal("SLACK_KEY environment variable not found")
 	}
-	// Start a connection to the websocket
-	ws, id := NewSlackConnection(key)
-
-	// Initalize a new data fetcher
-	dataFetcher := helpers.NewDataFetcher(dataFetcherClosure(key))
-
-	return &Slack{id, key, ws, dataFetcher}
+	rtm := slack.New(key).NewRTM()
+	return &Slack{rtm}
 }
 
-// AddToken is the external facing function for adding tokens
-func (slack *Slack) AddToken(URL string) string {
-	return addToken(slack.Token, URL)
+// FetchSlackUsers fetches a list of slack users and saves thier user ids by
+// this method could use the GetInfo()
+func (api *Slack) FetchSlackUsers() []slack.User {
+	users, err := api.GetUsers()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	return users
+}
+
+// GetSelfID returns the ID of the slack bot
+func (api *Slack) GetSelfID() string {
+	return api.GetInfo().User.ID
+}
+
+// MessageUser opens a channel to a user if it doesn't exist and messages the user
+func (api *Slack) MessageUser(user string, message string) {
+	_, _, channelID, err := api.Client.OpenIMChannel(user)
+	if err != nil {
+		log.Println("Unable to open channel")
+	}
+	// Can insert images an other things here
+	postParams := slack.PostMessageParameters{}
+	api.Client.PostMessage(channelID, message, postParams)
+
 }
