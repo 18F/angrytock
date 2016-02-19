@@ -3,6 +3,11 @@
 	"GoVersion": "go1.5.2",
 	"Deps": [
 		{
+			"ImportPath": "github.com/nlopes/slack",
+			"Comment": "v0.0.1-76-ga6a2e43",
+			"Rev": "a6a2e430fd2e1bc1f91c0fd538e5c2d0c898f5dc"
+		},
+		{
 			"ImportPath": "github.com/robfig/cron",
 			"Comment": "v1-5-ge428092",
 			"Rev": "e4280929dd5d1064616a07bc7912264525e845e5"
