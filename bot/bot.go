@@ -78,7 +78,7 @@ func InitBot() *Bot {
 	messageRepo := messagesPackage.InitMessageRepository()
 
 	// Start the map manager
-	go userEmailMap.startMapStateManager()
+	userEmailMap.startMapStateManager()
 
 	return &Bot{userEmailMap, slack, tock, messageRepo, violatorUserMap, masterList}
 }
