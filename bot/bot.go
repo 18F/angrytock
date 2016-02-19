@@ -16,11 +16,51 @@ import (
 	"github.com/nlopes/slack"
 )
 
+type readChannel struct {
+	key      string
+	response chan string
+}
+
+type writeChannel struct {
+	key      string
+	value    string
+	response chan bool
+}
+
+type mapStateManager struct {
+	state        map[string]string
+	readChannel  chan *readChannel
+	writeChannel chan *writeChannel
+}
+
+func newMapStateManager() *mapStateManager {
+	return &mapStateManager{
+		make(map[string]string),
+		make(chan *readChannel),
+		make(chan *writeChannel),
+	}
+}
+
+func (manager *mapStateManager) startMapStateManager() {
+	go func() {
+		for {
+			select {
+			case read := <-manager.readChannel:
+				read.response <- manager.state[read.key]
+			case write := <-manager.writeChannel:
+				log.Println(write)
+				manager.state[write.key] = write.value
+				write.response <- true
+			}
+		}
+	}()
+}
+
 // Bot struct serves as the primary entry point for slack and tock api methods
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
-	UserEmailMap    map[string]string
+	UserEmailMap    *mapStateManager
 	Slack           *slackPackage.Slack
 	Tock            *tockPackage.Tock
 	MessageRepo     *messagesPackage.MessageRepository
@@ -30,12 +70,15 @@ type Bot struct {
 
 // InitBot method initalizes a bot
 func InitBot() *Bot {
-	userEmailMap := make(map[string]string)
+	userEmailMap := newMapStateManager()
 	violatorUserMap := make(map[string]string)
 	masterList := strings.Split(os.Getenv("MASTER_LIST"), ",")
 	slack := slackPackage.InitSlack()
 	tock := tockPackage.InitTock()
 	messageRepo := messagesPackage.InitMessageRepository()
+
+	// Start the map manager
+	go userEmailMap.startMapStateManager()
 
 	return &Bot{userEmailMap, slack, tock, messageRepo, violatorUserMap, masterList}
 }
@@ -65,10 +108,20 @@ func (bot *Bot) updateMasterList(userEmail string, userSlackID string) {
 // StoreSlackUsers is a method for collecting and storing slack users in database
 func (bot *Bot) StoreSlackUsers() {
 	log.Println("Collecting Slack Users")
+	// Open a write channel to the bot
+	writes := &writeChannel{
+		key:      "",
+		value:    "",
+		response: make(chan bool),
+	}
+
 	slackUsers := bot.Slack.FetchSlackUsers()
 	for _, user := range slackUsers {
 		if strings.HasSuffix(user.Profile.Email, ".gov") {
-			bot.UserEmailMap[user.Profile.Email] = user.ID
+			writes.key = user.Profile.Email
+			writes.value = user.ID
+			bot.UserEmailMap.writeChannel <- writes
+			<-writes.response
 			bot.updateMasterList(user.Profile.Email, user.ID)
 		}
 	}
@@ -77,10 +130,16 @@ func (bot *Bot) StoreSlackUsers() {
 // updateviolatorUserMap generates a new map containing the slack id and user email
 // of late tock users
 func (bot *Bot) updateviolatorUserMap() {
+	reads := &readChannel{
+		key:      "",
+		response: make(chan string),
+	}
 	violatorUserMap := make(map[string]string)
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			userID := bot.UserEmailMap[user.Email]
+			reads.key = user.Email
+			bot.UserEmailMap.readChannel <- reads
+			userID := <-reads.response
 			if user.Email != "" && userID != "" {
 				violatorUserMap[userID] = user.Email
 			}
@@ -113,9 +172,15 @@ func (bot *Bot) startviolatorUserMapUpdater() {
 // SlapLateUsers collects users from tock and looks for thier slack ids in a database
 func (bot *Bot) SlapLateUsers() {
 	log.Println("Slapping Tock Users")
+	reads := &readChannel{
+		key:      "",
+		response: make(chan string),
+	}
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			userID := bot.UserEmailMap[user.Email]
+			reads.key = user.Email
+			bot.UserEmailMap.readChannel <- reads
+			userID := <-reads.response
 			if userID != "" {
 				bot.Slack.MessageUser(
 					userID,
@@ -161,10 +226,17 @@ func (bot *Bot) ListenToSlackUsers() {
 
 // isLateUser returns if the user is late.
 func (bot *Bot) isLateUser(slackUserID string) bool {
+	reads := &readChannel{
+		key:      "",
+		response: make(chan string),
+	}
 	found := false
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			if slackUserID == bot.UserEmailMap[user.Email] {
+			reads.key = user.Email
+			bot.UserEmailMap.readChannel <- reads
+			userID := <-reads.response
+			if slackUserID == userID {
 				found = true
 			}
 		},
@@ -175,18 +247,20 @@ func (bot *Bot) isLateUser(slackUserID string) bool {
 // fetchLateUsers returns a list of late users
 func (bot *Bot) fetchLateUsers() (string, int) {
 	var lateList string
-	var slackUserID string
 	var counter int
 
-	bot.Tock.UserApplier(
-		func(user tockPackage.User) {
-			slackUserID = bot.UserEmailMap[user.Email]
-			if slackUserID != "" {
-				lateList += fmt.Sprintf("<@%s>, ", slackUserID)
-				counter++
-			}
-		},
-	)
+	/*
+		var slackUserID string
+
+		bot.Tock.UserApplier(
+			func(user tockPackage.User) {
+				slackUserID = bot.UserEmailMap[user.Email]
+				if slackUserID != "" {
+					lateList += fmt.Sprintf("<@%s>, ", slackUserID)
+					counter++
+				}
+			},
+		)*/
 
 	if lateList == "" {
 		lateList = "No people"
