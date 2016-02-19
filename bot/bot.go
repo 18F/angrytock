@@ -114,7 +114,7 @@ func (bot *Bot) StoreSlackUsers() {
 		value:    "",
 		response: make(chan bool),
 	}
-
+	defer close(writes.response)
 	slackUsers := bot.Slack.FetchSlackUsers()
 	for _, user := range slackUsers {
 		if strings.HasSuffix(user.Profile.Email, ".gov") {
@@ -134,6 +134,8 @@ func (bot *Bot) updateviolatorUserMap() {
 		key:      "",
 		response: make(chan string),
 	}
+	defer close(reads.response)
+
 	violatorUserMap := make(map[string]string)
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
@@ -176,6 +178,7 @@ func (bot *Bot) SlapLateUsers() {
 		key:      "",
 		response: make(chan string),
 	}
+	defer close(reads.response)
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
 			reads.key = user.Email
@@ -230,6 +233,7 @@ func (bot *Bot) isLateUser(slackUserID string) bool {
 		key:      "",
 		response: make(chan string),
 	}
+	defer close(reads.response)
 	found := false
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
@@ -252,6 +256,8 @@ func (bot *Bot) fetchLateUsers() (string, int) {
 		key:      "",
 		response: make(chan string),
 	}
+	defer close(reads.response)
+
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
 			reads.key = user.Email
