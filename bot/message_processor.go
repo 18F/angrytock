@@ -41,16 +41,21 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 					"tock", message.Channel,
 				))
 			}
-		// Messages that references the bot will be send out 30% of the time
+		// Messages that references the bot will be send out 30% of the time. See: Foucault, Discipline 201
 		case strings.Contains(message.Text, fmt.Sprintf("<@%s>", bot.Slack.GetSelfID())):
 			{
-				randomInt := rand.Intn(10)
-				if randomInt >= 7 {
-					bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
-						bot.MessageRepo.Nice.GenerateMessage(user),
-						message.Channel,
-					))
+				var returnMessage string
+				randomInt := rand.Intn(100)
+				if randomInt >= 70 {
+					returnMessage = bot.MessageRepo.Nice.GenerateMessage(user)
+				} else if randomInt <= 3 {
+					returnMessage = "'The [tockers] must never know whether [they are] looked at at any one moment;"
+					returnMessage += " but [they] must be sure that [they] may always be so' - Foucault, Discipline 201"
 				}
+				bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+					returnMessage,
+					message.Channel,
+				))
 			}
 		}
 	}
