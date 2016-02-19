@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/nlopes/slack"
@@ -15,12 +16,12 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	if isViolator {
 		bot.violatorMessage(message, user)
 	}
-	// Handle comments made to bot
-	botRefered := strings.HasPrefix(
+
+	botCalled := strings.HasPrefix(
 		message.Text,
 		fmt.Sprintf("<@%s>", bot.Slack.GetSelfID()),
 	)
-	if botRefered {
+	if botCalled { // Messages made directly to bot
 		switch {
 		case bot.isMasterUser(user):
 			{
@@ -29,6 +30,27 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 		default:
 			{
 				bot.niceMessage(message, user)
+			}
+		}
+	} else {
+		switch {
+		// Messages that contain the word tick
+		case strings.Contains(message.Text, "tick"):
+			{
+				bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+					"tock", message.Channel,
+				))
+			}
+		// Messages that references the bot will be send out 30% of the time
+		case strings.Contains(message.Text, fmt.Sprintf("<@%s>", bot.Slack.GetSelfID())):
+			{
+				randomInt := rand.Intn(10)
+				if randomInt >= 7 {
+					bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+						bot.MessageRepo.Nice.GenerateMessage(user),
+						message.Channel,
+					))
+				}
 			}
 		}
 	}
@@ -56,18 +78,18 @@ func (bot *Bot) masterMessages(message *slack.MessageEvent) {
 	switch {
 	case strings.Contains(message.Text, "slap users"):
 		{
-			//go bot.SlapLateUsers()
+			go bot.SlapLateUsers()
 			returnMessage = "Slapping Users!"
 		}
 	case strings.Contains(message.Text, "bother users"):
 		{
-			//bot.startviolatorUserMapUpdater()
+			bot.startviolatorUserMapUpdater()
 			returnMessage = "Starting to bother users!"
 		}
 	case strings.Contains(message.Text, "who is late?"):
 		{
-			//lateList, total := bot.fetchLateUsers()
-			//returnMsg.Text = fmt.Sprintf("%s are late! %d people total.", lateList, total)
+			lateList, total := bot.fetchLateUsers()
+			returnMessage = fmt.Sprintf("%s are late! %d people total.", lateList, total)
 		}
 	default:
 		{
@@ -93,12 +115,6 @@ func (bot *Bot) niceMessage(message *slack.MessageEvent, user string) {
 			bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
 				bot.MessageRepo.Nice.GenerateMessage(user),
 				message.Channel,
-			))
-		}
-	case strings.Contains(message.Text, "tick"):
-		{
-			bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
-				"tock", message.Channel,
 			))
 		}
 	case strings.Contains(message.Text, "status"):
