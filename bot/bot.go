@@ -248,23 +248,23 @@ func (bot *Bot) isLateUser(slackUserID string) bool {
 func (bot *Bot) fetchLateUsers() (string, int) {
 	var lateList string
 	var counter int
-
-	/*
-		var slackUserID string
-
-		bot.Tock.UserApplier(
-			func(user tockPackage.User) {
-				slackUserID = bot.UserEmailMap[user.Email]
-				if slackUserID != "" {
-					lateList += fmt.Sprintf("<@%s>, ", slackUserID)
-					counter++
-				}
-			},
-		)*/
-
+	reads := &readChannel{
+		key:      "",
+		response: make(chan string),
+	}
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			reads.key = user.Email
+			bot.UserEmailMap.readChannel <- reads
+			slackUserID := <-reads.response
+			if slackUserID != "" {
+				lateList += fmt.Sprintf("<@%s>, ", slackUserID)
+				counter++
+			}
+		},
+	)
 	if lateList == "" {
 		lateList = "No people"
 	}
-
 	return lateList, counter
 }
