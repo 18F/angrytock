@@ -13,6 +13,7 @@ import (
 	"github.com/18F/angrytock/messages"
 	"github.com/18F/angrytock/slack"
 	"github.com/18F/angrytock/tock"
+	"github.com/nlopes/slack"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods
@@ -39,6 +40,18 @@ func InitBot() *Bot {
 	return &Bot{userEmailMap, slack, tock, messageRepo, violatorUserMap, masterList}
 }
 
+// Check if user is in masterList
+func (bot *Bot) isMasterUser(user string) bool {
+	var ismasterUser bool
+	for _, masterUser := range bot.masterList {
+		if masterUser == user {
+			ismasterUser = true
+			break
+		}
+	}
+	return ismasterUser
+}
+
 // masterList checks if a user email is in the masterList and
 // if it is, it will replace the users email with a slack id
 func (bot *Bot) updateMasterList(userEmail string, userSlackID string) {
@@ -52,10 +65,9 @@ func (bot *Bot) updateMasterList(userEmail string, userSlackID string) {
 // StoreSlackUsers is a method for collecting and storing slack users in database
 func (bot *Bot) StoreSlackUsers() {
 	log.Println("Collecting Slack Users")
-	slackUserData := bot.Slack.FetchSlackUsers()
-	for _, user := range slackUserData.Users {
+	slackUsers := bot.Slack.FetchSlackUsers()
+	for _, user := range slackUsers {
 		if strings.HasSuffix(user.Profile.Email, ".gov") {
-			log.Println("Saved:", user.Profile.Email)
 			bot.UserEmailMap[user.Profile.Email] = user.ID
 			bot.updateMasterList(user.Profile.Email, user.ID)
 		}
@@ -117,13 +129,32 @@ func (bot *Bot) SlapLateUsers() {
 // ListenToSlackUsers starts a loop that listens to tock users
 func (bot *Bot) ListenToSlackUsers() {
 	log.Println("Listening to slack")
+	go bot.Slack.ManageConnection()
 	// Creating a for loop to catch channel messages from slack
 	for {
-		// Get each incoming message
-		message, _ := bot.Slack.GetMessage()
-		// Only process messages
-		if message.Type == "message" {
-			bot.processMessage(message)
+		select {
+		case rtmEvent := <-bot.Slack.IncomingEvents:
+			switch event := rtmEvent.Data.(type) {
+			case *slack.HelloEvent:
+				// Ignore hello
+			case *slack.ConnectedEvent:
+				// Ignore PresenceChangeEvent
+			case *slack.MessageEvent:
+				bot.processMessage(event)
+			case *slack.PresenceChangeEvent:
+				// Ignore PresenceChangeEvent
+			case *slack.LatencyReport:
+				// Ignore LatencyReport
+			case *slack.RTMError:
+				// Show errors
+				fmt.Printf("Error: %s\n", event.Error())
+			case *slack.InvalidAuthEvent:
+				fmt.Printf("Invalid credentials")
+				break
+
+			default:
+				// Do nothing
+			}
 		}
 	}
 }

@@ -4,114 +4,114 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/18F/angrytock/slack"
+	"github.com/nlopes/slack"
 )
 
 // processMessage handles incomming messages
-func (bot *Bot) processMessage(message slackPackage.Message) {
-
-	// Check if the user is an offending user
+func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	user := message.User
+	// Handle Violators
 	_, isViolator := bot.violatorUserMap[user]
-	// Check if user is in masterList
-	var ismasterUser bool
-	for _, masterUser := range bot.masterList {
-		if masterUser == user {
-			ismasterUser = true
+	if isViolator {
+		bot.violatorMessage(message, user)
+	}
+	// Handle comments made to bot
+	botRefered := strings.HasPrefix(
+		message.Text,
+		fmt.Sprintf("<@%s>", bot.Slack.GetSelfID()),
+	)
+	if botRefered {
+		switch {
+		case bot.isMasterUser(user):
+			{
+				bot.masterMessages(message)
+			}
+		default:
+			{
+				bot.niceMessage(message, user)
+			}
 		}
 	}
-
-	switch {
-	// Master user commands
-	case ismasterUser && strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
-		{
-			bot.masterMessages(message)
-		}
-	// If the user is an offending user message them, but remove them off the list
-	case isViolator:
-		{
-			bot.violatorMessage(message, user)
-		}
-		// If this is a message directed at the bot respond in a nice way
-	case strings.HasPrefix(message.Text, fmt.Sprintf("<@%s>", bot.Slack.ID)):
-		{
-			bot.niceMessage(message, user)
-		}
-	}
-}
-
-// masterMessages contains the commands for admins
-func (bot *Bot) masterMessages(message slackPackage.Message) {
-	switch {
-	case strings.Contains(message.Text, "slap users"):
-		{
-			go bot.SlapLateUsers()
-			message.Text = "Slapping Users!"
-		}
-	case strings.Contains(message.Text, "bother users"):
-		{
-			bot.startviolatorUserMapUpdater()
-			message.Text = "Starting to bother users!"
-		}
-	case strings.Contains(message.Text, "who is late?"):
-		{
-			lateList, total := bot.fetchLateUsers()
-			message.Text = fmt.Sprintf("%s are late! %d people total.", lateList, total)
-		}
-	default:
-		{
-			message.Text = fmt.Sprintf(
-				"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
-				bot.Slack.ID,
-				bot.Slack.ID,
-				bot.Slack.ID,
-			)
-		}
-	}
-	bot.Slack.PostMessage(message)
-
 }
 
 // violatorMessage has the message for a late user
-func (bot *Bot) violatorMessage(message slackPackage.Message, user string) {
+func (bot *Bot) violatorMessage(message *slack.MessageEvent, user string) {
+	var returnMessage string
 	// Check if user is still late
 	if bot.isLateUser(user) {
-		message.Text = bot.MessageRepo.Angry.GenerateMessage(user)
+		returnMessage = bot.MessageRepo.Angry.GenerateMessage(user)
 	} else {
-		message.Text = fmt.Sprintf(
-			"<@%s>, I was about to yell at you, but then I realized you actually filled outyour timesheet. Thanks! ^_^",
+		returnMessage = fmt.Sprintf(
+			"<@%s>, I was about to yell at you, but then I realized you actually filled out your timesheet. Thanks! ^_^",
 			user,
 		)
 	}
 	delete(bot.violatorUserMap, user)
-	bot.Slack.PostMessage(message)
+	bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(returnMessage, message.Channel))
+}
 
+// masterMessages contains the commands for admins
+func (bot *Bot) masterMessages(message *slack.MessageEvent) {
+	var returnMessage string
+	switch {
+	case strings.Contains(message.Text, "slap users"):
+		{
+			//go bot.SlapLateUsers()
+			returnMessage = "Slapping Users!"
+		}
+	case strings.Contains(message.Text, "bother users"):
+		{
+			//bot.startviolatorUserMapUpdater()
+			returnMessage = "Starting to bother users!"
+		}
+	case strings.Contains(message.Text, "who is late?"):
+		{
+			//lateList, total := bot.fetchLateUsers()
+			//returnMsg.Text = fmt.Sprintf("%s are late! %d people total.", lateList, total)
+		}
+	default:
+		{
+			returnMessage = fmt.Sprintf(
+				"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
+				bot.Slack.GetSelfID(),
+				bot.Slack.GetSelfID(),
+				bot.Slack.GetSelfID(),
+			)
+		}
+	}
+	bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+		returnMessage, message.Channel,
+	))
 }
 
 // niceMessage are commands for user who are not late
-func (bot *Bot) niceMessage(message slackPackage.Message, user string) {
-
+func (bot *Bot) niceMessage(message *slack.MessageEvent, user string) {
+	var returnMessage string
 	switch {
-	case strings.Contains(message.Text, "say"):
+	case strings.Contains(message.Text, "hello"):
 		{
-			message.Text = bot.MessageRepo.Nice.GenerateMessage(user)
-			bot.Slack.PostMessage(message)
+			bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+				bot.MessageRepo.Nice.GenerateMessage(user),
+				message.Channel,
+			))
 		}
-	case strings.HasSuffix(message.Text, "ping"):
+	case strings.Contains(message.Text, "tick"):
 		{
-			message.Text = "pong!"
-			bot.Slack.PostMessage(message)
+			bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+				"tock", message.Channel,
+			))
 		}
 	case strings.Contains(message.Text, "status"):
 		{
-			// Start a go func because the search may take a while
 			go func() {
 				if bot.isLateUser(user) {
-					message.Text = fmt.Sprintf("<@%s>, you're late -_-", user)
+					returnMessage = fmt.Sprintf("<@%s>, you're late -_-", user)
 				} else {
-					message.Text = fmt.Sprintf("<@%s>, you're on time! ^_^", user)
+					returnMessage = fmt.Sprintf("<@%s>, you're on time! ^_^", user)
 				}
-				bot.Slack.PostMessage(message)
+				bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
+					returnMessage, message.Channel,
+				))
 			}()
 		}
 	}
