@@ -9,12 +9,10 @@ import (
 )
 
 // processMessage handles incomming messages
-func (bot *Bot) processMessage(message *slack.MessageEvent, readViolatorMap *readChannel) {
+func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	user := message.User
 	// Handle Violators
-	readViolatorMap.key = user
-	bot.violatorUserMap.readChannel <- readViolatorMap
-	userID := <-readViolatorMap.response
+	userID := bot.UserEmailMap.Get(user)
 	if userID != "" {
 		bot.violatorMessage(message, user)
 	}
@@ -75,13 +73,7 @@ func (bot *Bot) violatorMessage(message *slack.MessageEvent, user string) {
 			user,
 		)
 	}
-	deleteUser := &deleteChannel{
-		key:      "",
-		response: make(chan bool),
-	}
-	deleteUser.key = user
-	bot.violatorUserMap.deleteChannel <- deleteUser
-	<-deleteUser.response
+	bot.violatorUserMap.Delete(user)
 	bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(returnMessage, message.Channel))
 }
 
