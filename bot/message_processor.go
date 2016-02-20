@@ -9,11 +9,13 @@ import (
 )
 
 // processMessage handles incomming messages
-func (bot *Bot) processMessage(message *slack.MessageEvent) {
+func (bot *Bot) processMessage(message *slack.MessageEvent, readViolatorMap *readChannel) {
 	user := message.User
 	// Handle Violators
-	_, isViolator := bot.violatorUserMap[user]
-	if isViolator {
+	readViolatorMap.key = user
+	bot.violatorUserMap.readChannel <- readViolatorMap
+	userID := <-readViolatorMap.response
+	if userID != "" {
 		bot.violatorMessage(message, user)
 	}
 
@@ -35,7 +37,7 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	} else {
 		switch {
 		// Messages that contain the word tick
-		case strings.Contains(message.Text, "tick"):
+		case strings.Contains(message.Text, " tick "):
 			{
 				bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
 					"tock", message.Channel,
@@ -73,7 +75,13 @@ func (bot *Bot) violatorMessage(message *slack.MessageEvent, user string) {
 			user,
 		)
 	}
-	delete(bot.violatorUserMap, user)
+	deleteUser := &deleteChannel{
+		key:      "",
+		response: make(chan bool),
+	}
+	deleteUser.key = user
+	bot.violatorUserMap.deleteChannel <- deleteUser
+	<-deleteUser.response
 	bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(returnMessage, message.Channel))
 }
 
