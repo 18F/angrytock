@@ -16,3 +16,10 @@ func (dict *SafeDict) Delete(key string) {
 func (dict *SafeDict) Replace(newDict map[string]string) {
 	dict.replaceChannel <- newDict
 }
+
+func DestorySaftDict(dict *SafeDict) {
+	close(dict.readChannel)
+	close(dict.updateChannel)
+	close(dict.deleteChannel)
+	close(dict.replaceChannel)
+}
