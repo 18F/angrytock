@@ -11,6 +11,7 @@ import (
 // processMessage handles incomming messages
 func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	user := message.User
+	botID := bot.Slack.GetSelfID()
 	// Handle Violators
 	userID := bot.UserEmailMap.Get(user)
 	if userID != "" {
@@ -19,7 +20,7 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 
 	botCalled := strings.HasPrefix(
 		message.Text,
-		fmt.Sprintf("<@%s>", bot.Slack.GetSelfID()),
+		fmt.Sprintf("<@%s>", botID),
 	)
 	if botCalled { // Messages made directly to bot
 		switch {
@@ -42,7 +43,7 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 				))
 			}
 		// Messages that references the bot will be send out 30% of the time. See: Foucault, Discipline 201
-		case strings.Contains(message.Text, fmt.Sprintf("<@%s>", bot.Slack.GetSelfID())):
+		case strings.Contains(message.Text, fmt.Sprintf("<@%s>", botID)):
 			{
 				var returnMessage string
 				randomInt := rand.Intn(100)
@@ -80,6 +81,7 @@ func (bot *Bot) violatorMessage(message *slack.MessageEvent, user string) {
 // masterMessages contains the commands for admins
 func (bot *Bot) masterMessages(message *slack.MessageEvent) {
 	var returnMessage string
+	botID := bot.Slack.GetSelfID()
 	switch {
 	case strings.Contains(message.Text, "slap users"):
 		{
@@ -100,9 +102,9 @@ func (bot *Bot) masterMessages(message *slack.MessageEvent) {
 		{
 			returnMessage = fmt.Sprintf(
 				"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
-				bot.Slack.GetSelfID(),
-				bot.Slack.GetSelfID(),
-				bot.Slack.GetSelfID(),
+				botID,
+				botID,
+				botID,
 			)
 		}
 	}
