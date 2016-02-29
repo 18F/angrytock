@@ -8,7 +8,7 @@ func (dict *SafeDict) Get(key string) string {
 
 // Update sets a key to a specific value
 func (dict *SafeDict) Update(key string, value string) {
-	dict.updateChannel <- &keyValue{key, value}
+	dict.updateChannel <- &keyValue{key: key, value: value}
 }
 
 // Delete removes a key-value pair given a key

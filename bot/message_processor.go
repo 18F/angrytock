@@ -13,7 +13,7 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	user := message.User
 	botID := bot.Slack.GetSelfID()
 	// Handle Violators
-	userID := bot.UserEmailMap.Get(user)
+	userID := bot.violatorUserMap.Get(user)
 	if userID != "" {
 		bot.violatorMessage(message, user)
 	}
