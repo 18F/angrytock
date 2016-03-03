@@ -121,7 +121,7 @@ func (tock *Tock) TockUserGen() func() *ReportingPeriodAuditDetails {
 	return func() *ReportingPeriodAuditDetails {
 		usersResponse := tock.FetchTockUsers(newEndpoint)
 		currentPage++
-		newEndpoint = baseEndpoint + fmt.Sprintf("&page=%d", currentPage)
+		newEndpoint = baseEndpoint + fmt.Sprintf("?page=%d", currentPage)
 		return usersResponse
 	}
 }

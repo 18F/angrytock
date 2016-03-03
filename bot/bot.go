@@ -11,32 +11,46 @@ import (
 	"time"
 
 	"github.com/18F/angrytock/messages"
+	"github.com/18F/angrytock/safeDict"
 	"github.com/18F/angrytock/slack"
 	"github.com/18F/angrytock/tock"
+	"github.com/nlopes/slack"
 )
 
 // Bot struct serves as the primary entry point for slack and tock api methods
 // It stores the slack token string and a database connection for storing
 // emails and usernames
 type Bot struct {
-	UserEmailMap    map[string]string
+	UserEmailMap    *safeDict.SafeDict
 	Slack           *slackPackage.Slack
 	Tock            *tockPackage.Tock
 	MessageRepo     *messagesPackage.MessageRepository
-	violatorUserMap map[string]string
+	violatorUserMap *safeDict.SafeDict
 	masterList      []string
 }
 
 // InitBot method initalizes a bot
 func InitBot() *Bot {
-	userEmailMap := make(map[string]string)
-	violatorUserMap := make(map[string]string)
+	userEmailMap := safeDict.InitSafeDict()
+	violatorUserMap := safeDict.InitSafeDict()
 	masterList := strings.Split(os.Getenv("MASTER_LIST"), ",")
 	slack := slackPackage.InitSlack()
 	tock := tockPackage.InitTock()
 	messageRepo := messagesPackage.InitMessageRepository()
 
 	return &Bot{userEmailMap, slack, tock, messageRepo, violatorUserMap, masterList}
+}
+
+// Check if user is in masterList
+func (bot *Bot) isMasterUser(user string) bool {
+	var isMasterUser bool
+	for _, masterUser := range bot.masterList {
+		if masterUser == user {
+			isMasterUser = true
+			break
+		}
+	}
+	return isMasterUser
 }
 
 // masterList checks if a user email is in the masterList and
@@ -52,11 +66,12 @@ func (bot *Bot) updateMasterList(userEmail string, userSlackID string) {
 // StoreSlackUsers is a method for collecting and storing slack users in database
 func (bot *Bot) StoreSlackUsers() {
 	log.Println("Collecting Slack Users")
-	slackUserData := bot.Slack.FetchSlackUsers()
-	for _, user := range slackUserData.Users {
+	// Open a write channel to the bot
+
+	slackUsers := bot.Slack.FetchSlackUsers()
+	for _, user := range slackUsers {
 		if strings.HasSuffix(user.Profile.Email, ".gov") {
-			log.Println("Saved:", user.Profile.Email)
-			bot.UserEmailMap[user.Profile.Email] = user.ID
+			bot.UserEmailMap.Update(user.Profile.Email, user.ID)
 			bot.updateMasterList(user.Profile.Email, user.ID)
 		}
 	}
@@ -68,13 +83,13 @@ func (bot *Bot) updateviolatorUserMap() {
 	violatorUserMap := make(map[string]string)
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			userID := bot.UserEmailMap[user.Email]
+			userID := bot.UserEmailMap.Get(user.Email)
 			if user.Email != "" && userID != "" {
 				violatorUserMap[userID] = user.Email
 			}
 		},
 	)
-	bot.violatorUserMap = violatorUserMap
+	bot.violatorUserMap.Replace(violatorUserMap)
 }
 
 // startviolatorUserMapUpdater begins a ticker that only keeps the
@@ -89,8 +104,7 @@ func (bot *Bot) startviolatorUserMapUpdater() {
 		for {
 			select {
 			case <-ticker.C:
-				bot.violatorUserMap = make(map[string]string)
-				log.Println("Destroying violator list")
+				bot.violatorUserMap.Replace(make(map[string]string))
 				ticker.Stop()
 				return
 			}
@@ -103,7 +117,7 @@ func (bot *Bot) SlapLateUsers() {
 	log.Println("Slapping Tock Users")
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			userID := bot.UserEmailMap[user.Email]
+			userID := bot.UserEmailMap.Get(user.Email)
 			if userID != "" {
 				bot.Slack.MessageUser(
 					userID,
@@ -117,13 +131,32 @@ func (bot *Bot) SlapLateUsers() {
 // ListenToSlackUsers starts a loop that listens to tock users
 func (bot *Bot) ListenToSlackUsers() {
 	log.Println("Listening to slack")
+	go bot.Slack.ManageConnection()
 	// Creating a for loop to catch channel messages from slack
 	for {
-		// Get each incoming message
-		message, _ := bot.Slack.GetMessage()
-		// Only process messages
-		if message.Type == "message" {
-			bot.processMessage(message)
+		select {
+		case rtmEvent := <-bot.Slack.IncomingEvents:
+			switch event := rtmEvent.Data.(type) {
+			case *slack.HelloEvent:
+				// Ignore hello
+			case *slack.ConnectedEvent:
+				// Ignore PresenceChangeEvent
+			case *slack.MessageEvent:
+				bot.processMessage(event)
+			case *slack.PresenceChangeEvent:
+				// Ignore PresenceChangeEvent
+			case *slack.LatencyReport:
+				// Ignore LatencyReport
+			case *slack.RTMError:
+				// Show errors
+				fmt.Printf("Error: %s\n", event.Error())
+			case *slack.InvalidAuthEvent:
+				fmt.Printf("Invalid credentials")
+				break
+
+			default:
+				// Do nothing
+			}
 		}
 	}
 }
@@ -133,7 +166,8 @@ func (bot *Bot) isLateUser(slackUserID string) bool {
 	found := false
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			if slackUserID == bot.UserEmailMap[user.Email] {
+			userID := bot.UserEmailMap.Get(user.Email)
+			if slackUserID == userID {
 				found = true
 			}
 		},
@@ -144,22 +178,19 @@ func (bot *Bot) isLateUser(slackUserID string) bool {
 // fetchLateUsers returns a list of late users
 func (bot *Bot) fetchLateUsers() (string, int) {
 	var lateList string
-	var slackUserID string
 	var counter int
 
 	bot.Tock.UserApplier(
 		func(user tockPackage.User) {
-			slackUserID = bot.UserEmailMap[user.Email]
+			slackUserID := bot.UserEmailMap.Get(user.Email)
 			if slackUserID != "" {
 				lateList += fmt.Sprintf("<@%s>, ", slackUserID)
 				counter++
 			}
 		},
 	)
-
 	if lateList == "" {
 		lateList = "No people"
 	}
-
 	return lateList, counter
 }
