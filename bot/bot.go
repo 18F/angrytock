@@ -43,14 +43,14 @@ func InitBot() *Bot {
 
 // Check if user is in masterList
 func (bot *Bot) isMasterUser(user string) bool {
-	var ismasterUser bool
+	var isMasterUser bool
 	for _, masterUser := range bot.masterList {
 		if masterUser == user {
-			ismasterUser = true
+			isMasterUser = true
 			break
 		}
 	}
-	return ismasterUser
+	return isMasterUser
 }
 
 // masterList checks if a user email is in the masterList and

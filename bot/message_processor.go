@@ -8,6 +8,8 @@ import (
 	"github.com/nlopes/slack"
 )
 
+const panopticon = "'The [tockers] must never know whether [they are] looked at at any one moment; but [they] must be sure that [they] may always be so' - Foucault, Discipline 201"
+
 // processMessage handles incomming messages
 func (bot *Bot) processMessage(message *slack.MessageEvent) {
 	user := message.User
@@ -50,8 +52,7 @@ func (bot *Bot) processMessage(message *slack.MessageEvent) {
 				if randomInt >= 70 {
 					returnMessage = bot.MessageRepo.Nice.GenerateMessage(user)
 				} else if randomInt <= 3 {
-					returnMessage = "'The [tockers] must never know whether [they are] looked at at any one moment;"
-					returnMessage += " but [they] must be sure that [they] may always be so' - Foucault, Discipline 201"
+					returnMessage = panopticon
 				}
 				bot.Slack.SendMessage(bot.Slack.NewOutgoingMessage(
 					returnMessage,
