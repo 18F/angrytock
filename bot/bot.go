@@ -128,6 +128,21 @@ func (bot *Bot) SlapLateUsers() {
 	)
 }
 
+// RemindUsers collects users from tock and looks for thier slack ids in a database
+func (bot *Bot) RemindUsers(message string) {
+	log.Printf("Reminding Tock Users with `%s`", message)
+	bot.Tock.UserApplier(
+		func(user tockPackage.User) {
+			userID := bot.UserEmailMap.Get(user.Email)
+			if userID != "" {
+				bot.Slack.MessageUser(
+					userID, message,
+				)
+			}
+		},
+	)
+}
+
 // ListenToSlackUsers starts a loop that listens to tock users
 func (bot *Bot) ListenToSlackUsers() {
 	log.Println("Listening to slack")
