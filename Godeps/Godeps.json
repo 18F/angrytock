@@ -1,24 +1,24 @@
 {
-	"ImportPath": "github.com/18F/angrytock",
-	"GoVersion": "go1.5.2",
+	"ImportPath": ".",
+	"GoVersion": "go1.6",
 	"Deps": [
 		{
 			"ImportPath": "github.com/nlopes/slack",
-			"Comment": "v0.0.1-76-ga6a2e43",
-			"Rev": "a6a2e430fd2e1bc1f91c0fd538e5c2d0c898f5dc"
+			"Comment": "v0.0.1-98-g14b5c06",
+			"Rev": "14b5c06da227e7d8fe3e411b58ace3977df0d00d"
 		},
 		{
 			"ImportPath": "github.com/robfig/cron",
-			"Comment": "v1-5-ge428092",
-			"Rev": "e4280929dd5d1064616a07bc7912264525e845e5"
+			"Comment": "v1-16-g0f39cf7",
+			"Rev": "0f39cf7ebc65a602f45692f9894bd6a193faf8fa"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "c764672d0ee39ffd83cfcb375804d3181302b62b"
+			"Rev": "af4fee9d05b66edc24197d189e6118f8ebce8c2b"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
+			"Rev": "a83829b6f1293c91addabc89d0571c246397bbf4"
 		}
 	]
 }
