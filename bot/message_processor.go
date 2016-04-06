@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"math/rand"
+	"regexp"
 	"strings"
 
 	"github.com/nlopes/slack"
@@ -89,6 +90,18 @@ func (bot *Bot) masterMessages(message *slack.MessageEvent) {
 			go bot.SlapLateUsers()
 			returnMessage = "Slapping Users!"
 		}
+	case strings.Contains(message.Text, "remind users"):
+		{
+			braketFinder := regexp.MustCompile("{{.*?}}")
+			foundMessages := braketFinder.FindAllString(message.Text, 1)
+			if len(foundMessages) == 0 {
+				returnMessage = "Error: no message to send or message not formatted correctly"
+			} else {
+				messageToSend := strings.Trim(foundMessages[0], "{}")
+				go bot.RemindUsers(messageToSend)
+				returnMessage = fmt.Sprintf("Reminding users with `%s`", messageToSend)
+			}
+		}
 	case strings.Contains(message.Text, "bother users"):
 		{
 			bot.startviolatorUserMapUpdater()
@@ -102,7 +115,8 @@ func (bot *Bot) masterMessages(message *slack.MessageEvent) {
 	default:
 		{
 			returnMessage = fmt.Sprintf(
-				"Commands:\n Message tardy users `<@%s>: slap users!`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
+				"Commands:\n Message tardy users `<@%s>: slap users!`\n Remind users nicely `<@%s>: remind users {{Text of message here}}`\nBother tardy users `<@%s>: bother users!`\nFind out who is late `<@%s>: who is late?`",
+				botID,
 				botID,
 				botID,
 				botID,
