@@ -6,7 +6,6 @@ package bot
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/18F/angrytock/safeDict"
 	"github.com/18F/angrytock/slack"
 	"github.com/18F/angrytock/tock"
+	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/nlopes/slack"
 )
 
@@ -31,9 +31,12 @@ type Bot struct {
 
 // InitBot method initalizes a bot
 func InitBot() *Bot {
+	appEnv, _ := cfenv.Current()
+	appService, _ := appEnv.Services.WithName("angrytock-credentials")
+
 	userEmailMap := safeDict.InitSafeDict()
 	violatorUserMap := safeDict.InitSafeDict()
-	masterList := strings.Split(os.Getenv("MASTER_LIST"), ",")
+	masterList := strings.Split(fmt.Sprint(appService.Credentials["MASTER_LIST"]), ",")
 	slack := slackPackage.InitSlack()
 	tock := tockPackage.InitTock()
 	messageRepo := messagesPackage.InitMessageRepository()
