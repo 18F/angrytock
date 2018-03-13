@@ -21,9 +21,11 @@ type User struct {
 
 // ReportingPeriod is a struct representation of the reporting_period JSON object from tock
 type ReportingPeriod struct {
-	StartDate    string `json:"start_date"`
-	EndDate      string `json:"end_date"`
-	WorkingHours int    `json:"working_hours"`
+	StartDate         string `json:"start_date"`
+	EndDate           string `json:"end_date"`
+	ExactWorkingHours int    `json:"exact_working_hours"`
+	MinWorkingHours   int    `json:"min_working_hours"`
+	MaxWorkingHours   int    `json:"max_working_hours"`
 }
 
 // APIPages is a struct representation of a API page response from tock
