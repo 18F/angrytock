@@ -1,9 +1,10 @@
 package slackPackage
 
 import (
+	"fmt"
 	"log"
-	"os"
 
+	"github.com/cloudfoundry-community/go-cfenv"
 	"github.com/nlopes/slack"
 )
 
@@ -14,8 +15,10 @@ type Slack struct {
 
 // InitSlack initalizes the struct object
 func InitSlack() *Slack {
+	appEnv, _ := cfenv.Current()
+	appService, _ := appEnv.Services.WithName("angrytock-credentials")
 	// Collect the slack key
-	key := os.Getenv("SLACK_KEY")
+	key := fmt.Sprint(appService.Credentials["SLACK_KEY"])
 	if key == "" {
 		log.Fatal("SLACK_KEY environment variable not found")
 	}

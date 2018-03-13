@@ -30,6 +30,7 @@ Set the following env variables
 ```
 export SLACK_KEY="<<Slack Key>>"
 export TOCK_URL="https://Tock-Domain.com"
+export TOCK_USER_URL="https://Tock-Domain.com/users"
 export MASTER_LIST=<<EMAIL>>,<<EMAIL>>
 export PORT=5000 # will be set automatically by Cloud Foundry
 ```

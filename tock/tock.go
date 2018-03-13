@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/18F/angrytock/helpers"
+	"github.com/cloudfoundry-community/go-cfenv"
 )
 
 // User is a struct representation of the user JSON object from tock
@@ -58,12 +58,15 @@ type Tock struct {
 
 // InitTock initalizes the tock struct
 func InitTock() *Tock {
+	appEnv, _ := cfenv.Current()
+	appService, _ := appEnv.Services.WithName("angrytock-credentials")
+
 	// Get the tock url
-	tockURL := os.Getenv("TOCK_URL")
+	tockURL := fmt.Sprint(appService.Credentials["TOCK_URL"])
 	if tockURL == "" {
 		log.Fatal("TOCK_URL environment variable not found")
 	}
-	userTockURL := os.Getenv("USER_TOCK_URL")
+	userTockURL := fmt.Sprint(appService.Credentials["USER_TOCK_URL"])
 	if userTockURL == "" {
 		log.Fatal("USER_TOCK_URL environment variable not found")
 	}

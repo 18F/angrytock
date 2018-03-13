@@ -2,10 +2,22 @@
 
 
 [[projects]]
+  name = "github.com/cloudfoundry-community/go-cfenv"
+  packages = ["."]
+  revision = "f920e9562d5f951cbf11785728f67258c38a10d0"
+  version = "v1.17.0"
+
+[[projects]]
   name = "github.com/gorilla/websocket"
   packages = ["."]
   revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
   version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  revision = "00c29f56e2386353d58c599509e8dc3801b0d716"
 
 [[projects]]
   name = "github.com/nlopes/slack"
@@ -28,6 +40,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ccf50d591f82bf7254394dcd207599109c1385bb5afb764b1d77576b3d95f259"
+  inputs-digest = "764286e0bc97f718142be38766009238896308c30e5e9fdc9d09e07184eaea71"
   solver-name = "gps-cdcl"
   solver-version = 1

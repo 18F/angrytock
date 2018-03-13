@@ -1,0 +1,10 @@
+---
+applications:
+- name: angrytock-staging
+  memory: 64M
+  disk_quota: 64M
+  buildpack: go_buildpack
+  services:
+  - angrytock-credentials
+  env:
+    GOPACKAGENAME: github.com/18F/angrytock

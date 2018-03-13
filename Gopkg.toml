@@ -19,3 +19,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/cloudfoundry-community/go-cfenv"
+  version = "1.17.0"
