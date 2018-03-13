@@ -1,15 +1,29 @@
 package helpers
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/cloudfoundry-community/go-cfenv"
 )
 
 // FetchData opens urls and return the body of request
 func FetchData(URL string) []byte {
+	appEnv, _ := cfenv.Current()
+	appService, _ := appEnv.Services.WithName("angrytock-credentials")
+
+	apiAuthToken := fmt.Sprintf("Token %s", appService.Credentials["TOCK_API_TOKEN"])
+	if apiAuthToken == "" {
+		log.Fatal("TOCK_API_TOKEN environment variable not found")
+	}
+
+	client := &http.Client{}
 	// Get url
-	res, err := http.Get(URL)
+	req, _ := http.NewRequest("GET", URL, nil)
+	req.Header.Set("Authorization", apiAuthToken)
+	res, err := client.Do(req)
 	if err != nil {
 		log.Print("Failed to make request")
 	}
