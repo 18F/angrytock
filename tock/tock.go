@@ -39,7 +39,7 @@ type APIPages struct {
 //the Reporting Period Audit list endpoint
 type ReportingPeriodAuditList struct {
 	APIPages
-	ReportingPeriods []ReportingPeriod `json:"[]"`
+	ReportingPeriods []ReportingPeriod
 }
 
 // ReportingPeriodAuditDetails is a struct representation of an API response
@@ -92,12 +92,12 @@ func fetchCurrentReportingPeriod(data *ReportingPeriodAuditList) string {
 	return data.ReportingPeriods[currentPeriodIndex].StartDate
 }
 
-// fetchCurrentReportingPeriod collects the current reporting period
+// fetchReportingPeriod collects the current reporting period
 func (tock *Tock) fetchReportingPeriod() string {
 	var data ReportingPeriodAuditList
 	URL := fmt.Sprintf("%s.json", tock.AuditEndpoint)
 	body := tock.DataFetcher.FetchData(URL)
-	err := json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data.ReportingPeriods)
 	if err != nil {
 		log.Print(err)
 	}
@@ -109,7 +109,7 @@ func (tock *Tock) fetchReportingPeriod() string {
 func (tock *Tock) FetchTockUsers(endpoint string) *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	body := tock.DataFetcher.FetchData(endpoint)
-	err := json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data.Users)
 	if err != nil {
 		log.Print(err)
 	}
