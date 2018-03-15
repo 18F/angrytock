@@ -50,6 +50,7 @@ func (bot *Bot) isMasterUser(user string) bool {
 	for _, masterUser := range bot.masterList {
 		if masterUser == user {
 			isMasterUser = true
+			log.Printf("The user %s is a masterUser\n", user)
 			break
 		}
 	}

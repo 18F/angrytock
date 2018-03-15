@@ -21,9 +21,11 @@ type User struct {
 
 // ReportingPeriod is a struct representation of the reporting_period JSON object from tock
 type ReportingPeriod struct {
-	StartDate    string `json:"start_date"`
-	EndDate      string `json:"end_date"`
-	WorkingHours int    `json:"working_hours"`
+	StartDate         string `json:"start_date"`
+	EndDate           string `json:"end_date"`
+	ExactWorkingHours int    `json:"exact_working_hours"`
+	MinWorkingHours   int    `json:"min_working_hours"`
+	MaxWorkingHours   int    `json:"max_working_hours"`
 }
 
 // APIPages is a struct representation of a API page response from tock
@@ -37,7 +39,7 @@ type APIPages struct {
 //the Reporting Period Audit list endpoint
 type ReportingPeriodAuditList struct {
 	APIPages
-	ReportingPeriods []ReportingPeriod `json:"results"`
+	ReportingPeriods []ReportingPeriod
 }
 
 // ReportingPeriodAuditDetails is a struct representation of an API response
@@ -70,7 +72,7 @@ func InitTock() *Tock {
 	if userTockURL == "" {
 		log.Fatal("USER_TOCK_URL environment variable not found")
 	}
-	auditEndpoint := tockURL + "/api/reporting_period_audit/"
+	auditEndpoint := tockURL + "/api/reporting_period_audit"
 	// Initalize a new data fetcher
 	dataFetcher := helpers.NewDataFetcher(helpers.FetchData)
 	return &Tock{tockURL, userTockURL, auditEndpoint, dataFetcher}
@@ -90,12 +92,12 @@ func fetchCurrentReportingPeriod(data *ReportingPeriodAuditList) string {
 	return data.ReportingPeriods[currentPeriodIndex].StartDate
 }
 
-// fetchCurrentReportingPeriod collects the current reporting period
+// fetchReportingPeriod collects the current reporting period
 func (tock *Tock) fetchReportingPeriod() string {
 	var data ReportingPeriodAuditList
-	URL := fmt.Sprintf(tock.AuditEndpoint)
+	URL := fmt.Sprintf("%s.json", tock.AuditEndpoint)
 	body := tock.DataFetcher.FetchData(URL)
-	err := json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data.ReportingPeriods)
 	if err != nil {
 		log.Print(err)
 	}
@@ -107,7 +109,7 @@ func (tock *Tock) fetchReportingPeriod() string {
 func (tock *Tock) FetchTockUsers(endpoint string) *ReportingPeriodAuditDetails {
 	var data ReportingPeriodAuditDetails
 	body := tock.DataFetcher.FetchData(endpoint)
-	err := json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data.Users)
 	if err != nil {
 		log.Print(err)
 	}
@@ -118,7 +120,7 @@ func (tock *Tock) FetchTockUsers(endpoint string) *ReportingPeriodAuditDetails {
 // of user data by paging through the api
 func (tock *Tock) TockUserGen() func() *ReportingPeriodAuditDetails {
 	timePeriod := tock.fetchReportingPeriod()
-	baseEndpoint := fmt.Sprintf("%s%s", tock.AuditEndpoint, timePeriod)
+	baseEndpoint := fmt.Sprintf("%s/%s.json", tock.AuditEndpoint, timePeriod)
 	currentPage := 1
 	newEndpoint := baseEndpoint + fmt.Sprintf("?page=%d", currentPage)
 	return func() *ReportingPeriodAuditDetails {
